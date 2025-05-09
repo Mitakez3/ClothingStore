@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "546484403788",
+    "firebase_url": "https://clothingstore-3183a-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "clothingstore-3183a",
+    "storage_bucket": "clothingstore-3183a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:546484403788:android:36db6144b4729340d37ee9",
+        "android_client_info": {
+          "package_name": "com.example.clothingstore"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARFaiyE2BApIaHQcp6BbL8IyuG-cV0pQg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:546484403788:android:5be6c1ecb0fa5828d37ee9",
+        "android_client_info": {
+          "package_name": "com.example.nguyentest1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARFaiyE2BApIaHQcp6BbL8IyuG-cV0pQg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

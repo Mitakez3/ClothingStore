@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ClothingStore</string>
+    <string name="product_image">Hình ảnh sản phẩm</string>
+    <string name="title_activity_my_orders">MyOrdersActivity</string>
+</resources>
