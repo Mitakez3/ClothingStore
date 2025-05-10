@@ -1,9 +1,14 @@
 package com.example.clothingstore.Activity;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -11,6 +16,7 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -57,21 +63,13 @@ public class ProductDetailActivity extends AppCompatActivity {
         productPrice = findViewById(R.id.productPrice);
         productImage = findViewById(R.id.productImage);
         productDescription = findViewById(R.id.productDescription);
-        btnBuyNow = findViewById(R.id.btnBuyNow);
-        btnAddToCart = findViewById(R.id.btnAddToCart);
-        edtComment = findViewById(R.id.edtComment);
-        ratingBar = findViewById(R.id.ratingBar);
-        btnSendComment = findViewById(R.id.btnSendComment);
-        recyclerViewComments = findViewById(R.id.recyclerViewComments);
         tvQuantity = findViewById(R.id.tvQuantity);
         btnIncrease = findViewById(R.id.btnIncrease);
         btnDecrease = findViewById(R.id.btnDecrease);
-
-        // Khởi tạo RecyclerView bình luận
-        recyclerViewComments.setLayoutManager(new LinearLayoutManager(this));
-        commentList = new ArrayList<>();
-        commentAdapter = new CommentAdapter(commentList);
-        recyclerViewComments.setAdapter(commentAdapter);
+        btnBuyNow = findViewById(R.id.btnBuyNow);
+        btnAddToCart = findViewById(R.id.btnAddToCart);
+        Button btnShowComments = findViewById(R.id.btnShowComments);
+        TextView tvAverageRating = findViewById(R.id.tvAverageRating);
 
         // Nhận dữ liệu sản phẩm từ Intent
         String productId = getIntent().getStringExtra("productId"); // dùng productId thật
@@ -104,36 +102,121 @@ public class ProductDetailActivity extends AppCompatActivity {
             }
         });
 
+        btnShowComments.setOnClickListener(v -> showCommentsPopup(productId));
+
+
         // Button listeners
         btnAddToCart.setOnClickListener(v -> addToCart(productId, tenSP, giaSP, hinhSP, quantity));
         btnBuyNow.setOnClickListener(v -> proceedToPayment(productId, tenSP, giaSP, hinhSP, quantity));
 
-        // Sự kiện gửi bình luận
-
+        calculateAndDisplayAverageRating(productId);
 
         Log.d("ProductDetailActivity", "Activity đã mở");
     }
 
-    private void loadCommentsFromFirebase(String productId) {
-        DatabaseReference commentsRef = FirebaseDatabase.getInstance().getReference("Comments").child(productId);
-        commentsRef.addValueEventListener(new ValueEventListener() {
+    private void showCommentsPopup(String productId) {
+        View view = LayoutInflater.from(this).inflate(R.layout.popup_comments, null);
+        RecyclerView recyclerView = view.findViewById(R.id.recyclerViewComments);
+        Button btnClose = view.findViewById(R.id.btnClose);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(view)
+                .create();
+
+        // Đặt nền trong suốt và popup ở dưới
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow().setGravity(Gravity.BOTTOM);
+
+        // RecyclerView setup
+        commentList = new ArrayList<>();
+        commentAdapter = new CommentAdapter(commentList, this);  // Passing context here
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(commentAdapter);
+
+        // Lấy dữ liệu từ Firebase và hiển thị bình luận
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Comments").child(productId);
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 commentList.clear();
-                for (DataSnapshot commentSnapshot : snapshot.getChildren()) {
-                    Comment comment = commentSnapshot.getValue(Comment.class);
-                    if (comment != null) {
-                        commentList.add(comment);
+                for (DataSnapshot snap : snapshot.getChildren()) {
+                    Comment c = snap.getValue(Comment.class);
+                    if (c != null) {
+                        commentList.add(c);
                     }
                 }
+
+                // Cập nhật lại RecyclerView
                 commentAdapter.notifyDataSetChanged();
             }
+
             @Override
-            public void onCancelled(DatabaseError error) {
-                Log.e("ProductDetailActivity", "Error loading comments: " + error.getMessage());
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ProductDetailActivity.this, "Lỗi tải bình luận", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
+    }
+
+
+    private void calculateAndDisplayAverageRating(String productId) {
+        // Lấy dữ liệu từ Firebase và tính toán điểm trung bình cho sản phẩm với productId đó
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Comments").child(productId);
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<Comment> comments = new ArrayList<>();
+                for (DataSnapshot snap : snapshot.getChildren()) {
+                    Comment c = snap.getValue(Comment.class);
+                    if (c != null) {
+                        comments.add(c);
+                    }
+                }
+
+                // Tính điểm trung bình từ danh sách bình luận
+                double averageRating = calculateAverageRating(comments);
+
+                // Hiển thị điểm trung bình
+                displayAverageRating(averageRating);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ProductDetailActivity.this, "Lỗi tải bình luận", Toast.LENGTH_SHORT).show();
             }
         });
     }
+
+
+    // Phương thức tính toán điểm trung bình từ danh sách bình luận
+    private double calculateAverageRating(List<Comment> comments) {
+        double totalRating = 0;
+        int numRatings = 0;
+
+        for (Comment c : comments) {
+            totalRating += c.getRating();
+            numRatings++;
+        }
+
+        return numRatings > 0 ? totalRating / numRatings : 0; // Trả về điểm trung bình
+    }
+
+    // Phương thức cập nhật điểm trung bình liên tục
+    private void updateAverageRatingFromComments(List<Comment> comments) {
+        double averageRating = calculateAverageRating(comments);
+        displayAverageRating(averageRating); // Hiển thị điểm trung bình
+    }
+
+
+    private void displayAverageRating(double averageRating) {
+        TextView tvAverageRating = findViewById(R.id.tvAverageRating);  // Assuming you've added this TextView in XML
+        tvAverageRating.setText("⭐ " + String.format("%.1f", averageRating));  // Display average rating
+    }
+
+
 
     private String formatPrice(double price) {
         NumberFormat numberFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
@@ -161,7 +244,8 @@ public class ProductDetailActivity extends AppCompatActivity {
         if (!exists) {
             SanPham newProduct = new SanPham(tenSP, giaSP, hinhSP, "", "");
             newProduct.setSoLuong(quantity);
-            newProduct.setProductId(productId); // Gán productId
+            newProduct.setProductId(productId);
+            Log.d("ADD_TO_CART", "Added productId: " + newProduct.getProductId());
             cartList.add(newProduct);
         }
 
@@ -189,27 +273,4 @@ public class ProductDetailActivity extends AppCompatActivity {
         Toast.makeText(this, "Đã đặt hàng", Toast.LENGTH_SHORT).show();
     }
 
-
-    private void addCommentToFirebase(String productId, String userId, String username, int rating, String comment) {
-        DatabaseReference commentsRef = FirebaseDatabase.getInstance().getReference("Comments").child(productId);
-
-        String commentId = commentsRef.push().getKey(); // Tạo ID bình luận tự động
-        long timestamp = System.currentTimeMillis(); // Lấy thời gian hiện tại
-
-        HashMap<String, Object> commentData = new HashMap<>();
-        commentData.put("userId", userId);
-        commentData.put("username", username);
-        commentData.put("rating", rating);
-        commentData.put("comment", comment);
-        commentData.put("timestamp", timestamp);
-
-        assert commentId != null;
-        commentsRef.child(commentId).setValue(commentData).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Toast.makeText(this, "Bình luận đã được thêm!", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Lỗi khi thêm bình luận!", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
 }

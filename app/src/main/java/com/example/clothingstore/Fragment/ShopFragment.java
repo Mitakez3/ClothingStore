@@ -118,6 +118,8 @@ public class ShopFragment extends Fragment {
 
                     if (tenSP != null && gia != null && hinh != null && theLoai != null) {
                         SanPham sp = new SanPham(tenSP, gia, hinh, moTa != null ? moTa : "", theLoai);
+                        String productId = spSnapshot.getKey(); // lấy sp1, sp2, ...
+                        sp.setProductId(productId); // gán vào đối tượng
                         sanPhamList.add(sp);
 
                         if (count < 6) {

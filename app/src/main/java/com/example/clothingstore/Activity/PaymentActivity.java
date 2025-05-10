@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.clothingstore.Adapter.CartAdapter;
+import com.example.clothingstore.Domain.OrderItem;
 import com.example.clothingstore.R;
 import com.example.clothingstore.Domain.SanPham;
 import com.google.firebase.database.DataSnapshot;
@@ -42,7 +43,7 @@ public class PaymentActivity extends AppCompatActivity {
     private Button btnPlaceOrder;
     private List<SanPham> cartList;
     private double totalAmount;
-
+    private String userId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +62,14 @@ public class PaymentActivity extends AppCompatActivity {
         // Calculate and display total amount
         totalAmount = calculateTotalAmount();
         totalAmountTextView.setText(formatPrice(totalAmount));
+
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        userId = prefs.getString("userId", null);
+        if (userId == null) {
+            Toast.makeText(this, "Vui lòng đăng nhập để thanh toán", Toast.LENGTH_LONG).show();
+            finish(); // hoặc chuyển hướng đến LoginActivity
+            return;
+        }
 
         btnPlaceOrder.setOnClickListener(v -> placeOrder());
     }
@@ -123,21 +132,22 @@ public class PaymentActivity extends AppCompatActivity {
 
 
     private void saveOrderToFirebase(String orderId, String paymentMethod) {
-        List<Map<String, Object>> orderItems = new ArrayList<>();
+        List<OrderItem> orderItems = new ArrayList<>();
         for (SanPham sp : cartList) {
-            Map<String, Object> item = new HashMap<>();
-            item.put("productId", sp.getProductId());
-            item.put("tenSP", sp.getTenSP());
-            item.put("gia", sp.getGia());
-            item.put("hinh", sp.getHinh());
-            item.put("moTa", sp.getMoTa());
-            item.put("theLoai", sp.getTheLoai());
-            item.put("soLuong", sp.getSoLuong());
+            OrderItem item = new OrderItem(
+                    sp.getProductId(),
+                    sp.getSoLuong(),
+                    sp.getTenSP(),
+                    sp.getHinh(),
+                    sp.getGia()
+            );
             orderItems.add(item);
         }
 
+
         Map<String, Object> orderData = new HashMap<>();
         orderData.put("orderId", orderId);
+        orderData.put("customerId", userId);
         orderData.put("paymentMethod", paymentMethod);
         orderData.put("totalAmount", totalAmount);
         orderData.put("orderItems", orderItems);

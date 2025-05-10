@@ -1,6 +1,7 @@
 package com.example.clothingstore.Activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -78,6 +79,15 @@ public class Login extends AppCompatActivity {
                                     // Sign in success, update UI with the signed-in user's information
                                     Toast.makeText(getApplicationContext(), "Login successsful.",
                                             Toast.LENGTH_SHORT).show();
+                                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                                    if (user != null) {
+                                        String userId = user.getUid();  // Đây là mã bạn cần
+                                        // Lưu vào SharedPreferences
+                                        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                                        SharedPreferences.Editor editor = prefs.edit();
+                                        editor.putString("userId", userId);
+                                        editor.apply();
+                                    }
                                     Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
                                     startActivity(intent);
                                     finish();

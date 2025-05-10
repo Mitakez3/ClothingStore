@@ -69,7 +69,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
         holder.btnAction.setOnClickListener(v -> {
             if ("Đánh giá".equals(holder.btnAction.getText())) {
-                showReviewDialog(order.getOrderItems());
+                showReviewDialog(order.getOrderItems(), order.getCustomerId()); // truyền thêm customerId
             } else if ("Đã nhận hàng?".equals(holder.btnAction.getText())) {
                 new AlertDialog.Builder(context)
                         .setTitle("Xác nhận")
@@ -99,7 +99,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
     }
 
-    private void showReviewDialog(List<OrderItem> orderItems) {
+    private void showReviewDialog(List<OrderItem> orderItems, String customerId) {
         Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_review);
@@ -108,23 +108,21 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         RecyclerView recyclerView = dialog.findViewById(R.id.recyclerViewReview);
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
-        // Dùng trực tiếp danh sách orderItems
-        ReviewProductAdapter adapter = new ReviewProductAdapter(orderItems, context);
+        ReviewProductAdapter adapter = new ReviewProductAdapter(orderItems, context, customerId);
         recyclerView.setAdapter(adapter);
 
         dialog.show();
 
-        // Thiết lập kích thước dialog
         Window window = dialog.getWindow();
         if (window != null) {
             DisplayMetrics metrics = context.getResources().getDisplayMetrics();
             int width = metrics.widthPixels;
             int height = metrics.heightPixels;
-
             window.setLayout(width, height / 2);
             window.setGravity(Gravity.BOTTOM);
         }
     }
+
 
 
     @Override

@@ -26,11 +26,14 @@ import java.util.List;
 public class ReviewProductAdapter extends RecyclerView.Adapter<ReviewProductAdapter.ViewHolder> {
     private List<OrderItem> itemList;
     private Context context;
+    private String customerId;
 
-    public ReviewProductAdapter(List<OrderItem> itemList, Context context) {
+    public ReviewProductAdapter(List<OrderItem> itemList, Context context, String customerId) {
         this.itemList = itemList;
         this.context = context;
+        this.customerId = customerId;
     }
+
 
     private void showReviewPopup(Context context, String productId, String tenSP) {
         View view = LayoutInflater.from(context).inflate(R.layout.activity_review, null);
@@ -40,37 +43,38 @@ public class ReviewProductAdapter extends RecyclerView.Adapter<ReviewProductAdap
         TextView tvProductName = view.findViewById(R.id.tvProductName);
         Button btnSubmit = view.findViewById(R.id.btnSubmit);
 
-        tvProductName.setText(tenSP); // Hiển thị tên sản phẩm
+        tvProductName.setText(tenSP);
 
         AlertDialog dialog = new AlertDialog.Builder(context)
                 .setView(view)
                 .create();
 
-        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent); // Nền bo góc nếu có
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
         btnSubmit.setOnClickListener(v -> {
             int rating = (int) ratingBar.getRating();
             String commentText = etComment.getText().toString().trim();
 
             if (rating == 0 || commentText.isEmpty()) {
-                Toast.makeText(context, "Please rate and comment", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Vui lòng đánh giá và nhập nhận xét", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            Comment comment = new Comment("user123", "Anonymous", rating, commentText, System.currentTimeMillis());
+            Comment comment = new Comment(customerId, rating, commentText, System.currentTimeMillis());
 
             FirebaseDatabase.getInstance().getReference("Comments")
                     .child(productId)
                     .push()
                     .setValue(comment)
                     .addOnSuccessListener(unused -> {
-                        Toast.makeText(context, "Thank you for your review!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "Cảm ơn bạn đã đánh giá!", Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
                     });
         });
 
         dialog.show();
     }
+
 
 
     @NonNull

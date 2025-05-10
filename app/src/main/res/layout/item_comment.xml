@@ -1,26 +1,36 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout android:layout_width="match_parent"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="10dp"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    android:padding="8dp"
+    android:layout_marginBottom="8dp"
+    android:background="?android:attr/selectableItemBackground">
 
+    <!-- Tên người dùng -->
     <TextView
-        android:id="@+id/txtUsername"
+        android:id="@+id/tvUsername"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:text="Tên người dùng"/>
+        android:text="Tên người dùng"
+        android:textSize="16sp"
+        android:textColor="#000000"
+        android:fontFamily="sans-serif-medium" />
 
+    <!-- Đánh giá -->
     <TextView
-        android:id="@+id/txtRating"
+        android:id="@+id/tvRating"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="⭐ 5"/>
+        android:text="★ 5"
+        android:textColor="#FFD700"
+        android:textSize="16sp" />
 
+    <!-- Bình luận -->
     <TextView
-        android:id="@+id/txtComment"
+        android:id="@+id/tvComment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Nội dung bình luận"/>
+        android:text="Chất lượng tuyệt vời!"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp" />
 </LinearLayout>

@@ -4,12 +4,12 @@ public class OrderItem {
     private String productId;
     private String tenSP;
     private String hinh;
-    private int gia;
+    private Double gia;
     // thêm các trường khác nếu có: mô tả, thể loại, v.v.
     private int soLuong;
     public OrderItem() {}
 
-    public OrderItem(String productId, int soLuong, String tenSP, String hinh, int gia) {
+    public OrderItem(String productId, int soLuong, String tenSP, String hinh, Double gia) {
         this.productId = productId;
         this.soLuong = soLuong;
         this.tenSP = tenSP;
@@ -37,6 +37,6 @@ public class OrderItem {
     public String getHinh() { return hinh; }
     public void setHinh(String hinh) { this.hinh = hinh; }
 
-    public int getGia() { return gia; }
-    public void setGia(int gia) { this.gia = gia; }
+    public Double getGia() { return gia; }
+    public void setGia(Double gia) { this.gia = gia; }
 }
