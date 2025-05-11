@@ -3,24 +3,36 @@ package com.example.clothingstore.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.clothingstore.Adapter.CartAdapter;
+import com.example.clothingstore.Adapter.VoucherAdapter;
 import com.example.clothingstore.Domain.OrderItem;
+import com.example.clothingstore.Domain.Voucher;
 import com.example.clothingstore.R;
 import com.example.clothingstore.Domain.SanPham;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -44,6 +56,9 @@ public class PaymentActivity extends AppCompatActivity {
     private List<SanPham> cartList;
     private double totalAmount;
     private String userId;
+    private Voucher selectedVoucher = null;
+    private double originalTotalAmount;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +77,7 @@ public class PaymentActivity extends AppCompatActivity {
         // Calculate and display total amount
         totalAmount = calculateTotalAmount();
         totalAmountTextView.setText(formatPrice(totalAmount));
+        originalTotalAmount = totalAmount;
 
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         userId = prefs.getString("userId", null);
@@ -71,8 +87,115 @@ public class PaymentActivity extends AppCompatActivity {
             return;
         }
 
+        LinearLayout layoutDiscount = findViewById(R.id.layoutDiscount);
+        layoutDiscount.setOnClickListener(v -> showVoucherBottomSheet());
         btnPlaceOrder.setOnClickListener(v -> placeOrder());
     }
+
+    private void showVoucherBottomSheet() {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        View sheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_voucher, null);
+        bottomSheetDialog.setContentView(sheetView);
+
+        RecyclerView recyclerView = sheetView.findViewById(R.id.recyclerVouchers);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference voucherRef = FirebaseDatabase.getInstance().getReference("Vouchers");
+        DatabaseReference usedRef = FirebaseDatabase.getInstance().getReference("UsedVouchers");
+
+        Map<String, Boolean> usedMap = new HashMap<>();
+        List<Voucher> vouchers = new ArrayList<>();
+
+        // Lấy danh sách UsedVouchers trước
+        usedRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot usedSnapshot) {
+                for (DataSnapshot voucherSnap : usedSnapshot.getChildren()) {
+                    String voucherId = voucherSnap.getKey();
+                    if (voucherSnap.hasChild(userId)) {
+                        usedMap.put(voucherId, true);
+                    }
+                }
+
+                // Sau đó mới lấy danh sách Voucher
+                voucherRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot voucherSnapshot) {
+                        for (DataSnapshot child : voucherSnapshot.getChildren()) {
+                            Voucher v = child.getValue(Voucher.class);
+                            if (v != null) {
+                                v.setVoucherId(child.getKey());
+                                vouchers.add(v);
+                            }
+                        }
+
+                        // Tạo Adapter sau khi có cả vouchers và usedMap
+                        VoucherAdapter adapter = new VoucherAdapter(vouchers, userId, usedMap, selectedVoucher, new VoucherAdapter.OnVoucherApplyListener() {
+                            @Override
+                            public void onApply(Voucher voucher) {
+                                selectedVoucher = voucher;
+                                applyVoucher(voucher);
+                                bottomSheetDialog.dismiss();
+                            }
+
+                            @Override
+                            public void onCancel() {
+                                selectedVoucher = null;
+                                resetVoucher();
+                                bottomSheetDialog.dismiss();
+                            }
+                        });
+
+
+                        recyclerView.setAdapter(adapter);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(PaymentActivity.this, "Lỗi khi tải voucher", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(PaymentActivity.this, "Không thể kiểm tra voucher đã dùng", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        bottomSheetDialog.show();
+    }
+
+
+
+    private void applyVoucher(Voucher newVoucher) {
+        selectedVoucher = newVoucher;
+
+        double discount = originalTotalAmount * (selectedVoucher.getDiscountPercent() / 100.0);
+        double discountedTotal = originalTotalAmount - discount;
+
+        TextView tvDiscountDetail = findViewById(R.id.tvDiscountDetail);
+        tvDiscountDetail.setText("-" + formatPrice(discount));
+        tvDiscountDetail.setTextColor(ContextCompat.getColor(this, R.color.red));
+
+        totalAmountTextView.setText(formatPrice(discountedTotal));
+        totalAmount = discountedTotal;
+    }
+
+
+
+    private void resetVoucher() {
+        selectedVoucher = null;
+
+        TextView tvDiscountDetail = findViewById(R.id.tvDiscountDetail);
+        tvDiscountDetail.setText("Chọn mã giảm giá");
+        tvDiscountDetail.setTextColor(ContextCompat.getColor(this, R.color.gray));
+
+        totalAmount = originalTotalAmount;
+        totalAmountTextView.setText(formatPrice(totalAmount));
+    }
+
 
     private List<SanPham> loadCartData() {
         Gson gson = new Gson();
@@ -144,7 +267,6 @@ public class PaymentActivity extends AppCompatActivity {
             orderItems.add(item);
         }
 
-
         Map<String, Object> orderData = new HashMap<>();
         orderData.put("orderId", orderId);
         orderData.put("customerId", userId);
@@ -153,18 +275,27 @@ public class PaymentActivity extends AppCompatActivity {
         orderData.put("orderItems", orderItems);
         orderData.put("status", "delivering");
         orderData.put("timestamp", ServerValue.TIMESTAMP);
+        Log.d("VoucherSave", "SelectedVoucher: " + selectedVoucher.getVoucherId() + ", UserId: " + userId);
 
 
         FirebaseDatabase.getInstance().getReference("orders")
                 .child(orderId)
                 .setValue(orderData)
                 .addOnSuccessListener(aVoid -> {
+                    if (selectedVoucher != null) {
+                        // Lưu voucher đã sử dụng
+                        FirebaseDatabase.getInstance().getReference("UsedVouchers")
+                                .child(selectedVoucher.getVoucherId())
+                                .child(userId)
+                                .setValue(true);
+                    }
                     Toast.makeText(this, "Đặt hàng thành công! Mã đơn #" + orderId, Toast.LENGTH_LONG).show();
                     clearCart();
                     finish();
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Đặt hàng thất bại!", Toast.LENGTH_SHORT).show());
     }
+
 
 
     private void generateUniqueOrderIdAndSave(String paymentMethod) {

@@ -109,6 +109,6 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
 
     private String formatPrice(double price) {
         NumberFormat numberFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
-        return "Tổng: " + numberFormat.format(price) + " VNĐ";
+        return numberFormat.format(price) + " VNĐ";
     }
 }

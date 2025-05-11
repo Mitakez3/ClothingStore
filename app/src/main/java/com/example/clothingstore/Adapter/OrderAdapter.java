@@ -36,6 +36,22 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         this.context = context;
     }
 
+    public static class OrderViewHolder extends RecyclerView.ViewHolder {
+        TextView tvOrderId, tvStatus, tvItemCount, tvOrderDate, tvTotalAmount, tvPaymentMethod;
+        Button btnAction;
+
+        public OrderViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvOrderId = itemView.findViewById(R.id.tvOrderId);
+            tvStatus = itemView.findViewById(R.id.tvStatus);
+            tvItemCount = itemView.findViewById(R.id.tvItemCount);
+            btnAction = itemView.findViewById(R.id.btnAction);
+            tvOrderDate = itemView.findViewById(R.id.tvOrderDate);
+            tvTotalAmount = itemView.findViewById(R.id.tvTotalAmount);
+            tvPaymentMethod = itemView.findViewById(R.id.tvPaymentMethod);
+        }
+    }
+
     @NonNull
     @Override
     public OrderViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -66,6 +82,9 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
         holder.tvStatus.setText(statusText);
         holder.tvItemCount.setText(order.getOrderItems().size() + " sản phẩm");
+        holder.tvOrderDate.setText("Ngày đặt hàng: " + order.getOrderDate());
+        holder.tvTotalAmount.setText("Tổng tiền: " + formatCurrency(order.getTotalAmount()));
+        holder.tvPaymentMethod.setText("Phương thức thanh toán: " + order.getPaymentMethod());
 
         holder.btnAction.setOnClickListener(v -> {
             if ("Đánh giá".equals(holder.btnAction.getText())) {
@@ -99,6 +118,10 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
     }
 
+    private String formatCurrency(int amount) {
+        return String.format("%,d VND", amount); // Format tiền tệ
+    }
+
     private void showReviewDialog(List<OrderItem> orderItems, String customerId) {
         Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -123,23 +146,8 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         }
     }
 
-
-
     @Override
     public int getItemCount() {
         return orderList.size();
-    }
-
-    public static class OrderViewHolder extends RecyclerView.ViewHolder {
-        TextView tvOrderId, tvStatus, tvItemCount;
-        Button btnAction;
-
-        public OrderViewHolder(@NonNull View itemView) {
-            super(itemView);
-            tvOrderId = itemView.findViewById(R.id.tvOrderId);
-            tvStatus = itemView.findViewById(R.id.tvStatus);
-            tvItemCount = itemView.findViewById(R.id.tvItemCount);
-            btnAction = itemView.findViewById(R.id.btnAction);
-        }
     }
 }

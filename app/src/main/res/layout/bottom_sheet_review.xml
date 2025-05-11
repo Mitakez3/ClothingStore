@@ -7,7 +7,7 @@
     android:layout_height="wrap_content">
 
     <TextView
-        android:text="Which item you want to review?"
+        android:text="Chọn sản phẩm để đánh giá"
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="12dp"
