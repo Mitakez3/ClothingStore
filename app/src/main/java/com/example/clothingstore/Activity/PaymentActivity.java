@@ -184,8 +184,6 @@ public class PaymentActivity extends AppCompatActivity {
         totalAmount = discountedTotal;
     }
 
-
-
     private void resetVoucher() {
         selectedVoucher = null;
 
@@ -232,15 +230,21 @@ public class PaymentActivity extends AppCompatActivity {
 
     private void saveOrderToFirebase(String orderId, String paymentMethod) {
         List<OrderItem> orderItems = new ArrayList<>();
+        List<SanPham> selectedItems = new ArrayList<>();
+
         for (SanPham sp : cartList) {
-            OrderItem item = new OrderItem(
-                    sp.getProductId(),
-                    sp.getSoLuong(),
-                    sp.getTenSP(),
-                    sp.getHinh(),
-                    sp.getGia()
-            );
-            orderItems.add(item);
+            // Kiểm tra nếu sản phẩm này đã được chọn
+            if (sp.isSelected()) {
+                OrderItem item = new OrderItem(
+                        sp.getProductId(),
+                        sp.getSoLuong(),
+                        sp.getTenSP(),
+                        sp.getHinh(),
+                        sp.getGia()
+                );
+                orderItems.add(item);
+                selectedItems.add(sp);
+            }
         }
 
         Map<String, Object> orderData = new HashMap<>();
@@ -263,11 +267,11 @@ public class PaymentActivity extends AppCompatActivity {
                                 .setValue(true);
                     }
 
-                    // Chỉ xóa các sản phẩm đã đặt mua khỏi giỏ hàng
+                    // Chỉ xóa các sản phẩm đã chọn khỏi giỏ hàng
                     DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(userId);
                     List<com.google.android.gms.tasks.Task<Void>> deleteTasks = new ArrayList<>();
 
-                    for (SanPham sp : cartList) {
+                    for (SanPham sp : selectedItems) {
                         deleteTasks.add(cartRef.child(sp.getProductId()).removeValue());
                     }
 
@@ -281,11 +285,10 @@ public class PaymentActivity extends AppCompatActivity {
                         finish();
                     });
 
-                    clearCart(); // Optional nếu bạn dùng SharedPreferences song song
+                    clearCart();
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Đặt hàng thất bại!", Toast.LENGTH_SHORT).show());
     }
-
 
 
 
@@ -301,21 +304,18 @@ public class PaymentActivity extends AppCompatActivity {
 
             String newOrderId;
             do {
-                int random = 1000000 + new Random().nextInt(9000000); // 7 chữ số
+                int random = 1000000 + new Random().nextInt(9000000);
                 newOrderId = String.valueOf(random);
             } while (existingIds.contains(newOrderId));
 
-            saveOrderToFirebase(newOrderId, paymentMethod); // Gọi lưu đơn
+            saveOrderToFirebase(newOrderId, paymentMethod);
         }).addOnFailureListener(e -> {
             Toast.makeText(this, "Không thể tạo mã đơn hàng", Toast.LENGTH_SHORT).show();
         });
     }
 
 
-
-
     private void clearCart() {
-        // Only clear SharedPreferences cart if coming from CartActivity
         Intent intent = getIntent();
         if (!intent.hasExtra("cartList")) {
             SharedPreferences.Editor editor = getSharedPreferences("CartPrefs", MODE_PRIVATE).edit();
@@ -325,7 +325,6 @@ public class PaymentActivity extends AppCompatActivity {
     }
 
     private void payWithMomo() {
-        // Tích hợp MoMo sẽ thêm ở bước tiếp theo
         Toast.makeText(this, "Đang chuyển hướng tới MoMo...", Toast.LENGTH_SHORT).show();
         generateUniqueOrderIdAndSave("Momo");
     }

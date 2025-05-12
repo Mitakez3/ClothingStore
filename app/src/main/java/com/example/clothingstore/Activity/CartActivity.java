@@ -81,7 +81,6 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         }
     }
 
-
     private void loadCartFromFirebase() {
         // Lấy userId từ SharedPreferences
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
@@ -151,27 +150,32 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         });
     }
 
-
     private void proceedToPayment() {
-        double total = 0;
+        List<SanPham> selectedItems = new ArrayList<>();
+
+        // Lọc các sản phẩm đã chọn
         for (SanPham sanPham : cartList) {
-            total += sanPham.getGia() * sanPham.getSoLuong();
+            if (sanPham.isSelected()) {
+                selectedItems.add(sanPham);
+            }
         }
 
-        // Chuyển qua màn PaymentActivity
+        // Kiểm tra nếu không có sản phẩm nào được chọn
+        if (selectedItems.isEmpty()) {
+            Toast.makeText(CartActivity.this, "Chọn ít nhất 1 sản phẩm để thanh toán", Toast.LENGTH_SHORT).show();
+            return;  // Dừng lại và không tiếp tục đến màn thanh toán
+        }
+
+        // Chuyển qua màn PaymentActivity với giỏ hàng đã chọn
         Intent intent = new Intent(CartActivity.this, PaymentActivity.class);
 
-        // Truyền tổng tiền
-        intent.putExtra("totalPrice", total);
-
-        // Truyền giỏ hàng dưới dạng JSON
+        // Chuyển giỏ hàng đã chọn dưới dạng JSON
         Gson gson = new Gson();
-        String cartJson = gson.toJson(cartList);
+        String cartJson = gson.toJson(selectedItems);
         intent.putExtra("cartList", cartJson);
 
         startActivity(intent);
     }
-
 
 
     @Override
@@ -182,7 +186,9 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     private void updateTotalPrice() {
         double total = 0;
         for (SanPham sanPham : cartList) {
-            total += sanPham.getGia() * sanPham.getSoLuong();
+            if (sanPham.isSelected()) {
+                total += sanPham.getGia() * sanPham.getSoLuong();  // Tính tổng tiền chỉ cho sản phẩm đã chọn
+            }
         }
         totalPriceTextView.setText(formatPrice(total));
     }

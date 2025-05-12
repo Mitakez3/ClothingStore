@@ -7,84 +7,107 @@
     app:cardElevation="4dp"
     app:cardCornerRadius="8dp">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:background="@android:color/white"
         android:padding="8dp">
 
-        <!-- Product Image -->
-        <ImageView
-            android:id="@+id/productImage"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_launcher_background"
-            android:visibility="gone" />
-
-        <!-- Delete Button (positioned inside image) -->
-        <ImageView
-            android:id="@+id/btnDelete"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_alignRight="@id/productImage"
-            android:layout_alignBottom="@id/productImage"
-            android:layout_margin="4dp"
-            android:src="@drawable/delete" />
-
-        <!-- Product Name -->
-        <TextView
-            android:id="@+id/productTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_toRightOf="@id/productImage"
-            android:text="Tên sản phẩm"
-            android:textSize="18sp" />
-
-        <!-- Quantity Controls (positioned bottom right) -->
-
-        <TextView
-            android:id="@+id/productPrice"
+        <!-- CheckBox để chọn sản phẩm -->
+        <CheckBox
+            android:id="@+id/checkboxSelect"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/productTitle"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="7dp"
-            android:layout_marginTop="47dp"
-            android:layout_toRightOf="@id/productImage"
-            android:text="Giá"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="4dp" />
 
+        <!-- Nội dung và số lượng -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/productPrice"
-            android:layout_alignParentRight="true"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-            <ImageView
-                android:id="@+id/btnDecrease"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/less" />
+            <!-- Nội dung sản phẩm -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/txtQuantity"
-                android:layout_width="43dp"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="1"
-                android:textColor="@color/black"
-                android:textSize="18sp" />
+                <!-- Product Image -->
+                <ImageView
+                    android:id="@+id/productImage"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_launcher_background"
+                    android:visibility="gone" />
 
-            <ImageView
-                android:id="@+id/btnIncrease"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/more" />
+                <!-- Delete Button -->
+                <ImageView
+                    android:id="@+id/btnDelete"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_alignRight="@id/productImage"
+                    android:layout_alignBottom="@id/productImage"
+                    android:layout_margin="4dp"
+                    android:src="@drawable/delete" />
+
+                <!-- Product Title -->
+                <TextView
+                    android:id="@+id/productTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_toRightOf="@id/productImage"
+                    android:text="Tên sản phẩm"
+                    android:textSize="18sp" />
+
+                <!-- Product Price -->
+                <TextView
+                    android:id="@+id/productPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/productTitle"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_toRightOf="@id/productImage"
+                    android:text="Giá"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+            <!-- Quantity Control -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <ImageView
+                    android:id="@+id/btnDecrease"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/less" />
+
+                <TextView
+                    android:id="@+id/txtQuantity"
+                    android:layout_width="43dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="1"
+                    android:textColor="@color/black"
+                    android:textSize="18sp" />
+
+                <ImageView
+                    android:id="@+id/btnIncrease"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/more" />
+            </LinearLayout>
+
         </LinearLayout>
 
-    </RelativeLayout>
+    </LinearLayout>
 </androidx.cardview.widget.CardView>

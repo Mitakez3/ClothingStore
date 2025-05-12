@@ -8,6 +8,8 @@ public class SanPham {
     private String TheLoai;
     private int soLuong;
 
+    private boolean isSelected;
+
     private String productId;
 
     public SanPham() {
@@ -64,5 +66,13 @@ public class SanPham {
     }
     public void setSoLuong(int soLuong) {
         this.soLuong = soLuong;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
     }
 }

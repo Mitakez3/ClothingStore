@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,6 +52,12 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         holder.productPrice.setText(formatPrice(currentItem.getGia()));
         holder.quantity.setText(String.valueOf(currentItem.getSoLuong()));
 
+        holder.checkboxSelect.setChecked(currentItem.isSelected());
+        holder.checkboxSelect.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            currentItem.setSelected(isChecked);
+            cartUpdatedListener.onCartUpdated();
+        });
+
         // Load image with Glide
         if (currentItem.getHinh() != null && !currentItem.getHinh().isEmpty()) {
             Glide.with(context).load(currentItem.getHinh()).into(holder.productImage);
@@ -91,12 +98,16 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
 
         DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(user.getUid());
 
-        // Chỉ lưu thông tin số lượng của sản phẩm trong Firebase
+        // Lọc các sản phẩm đã chọn và xóa khỏi Firebase
         for (SanPham item : cartList) {
-            cartRef.child(item.getProductId()).child("quantity").setValue(item.getSoLuong());
+            if (item.isSelected()) {
+                cartRef.child(item.getProductId()).removeValue();
+            } else {
+                // Cập nhật lại sản phẩm chưa chọn (có thể giữ lại số lượng)
+                cartRef.child(item.getProductId()).child("quantity").setValue(item.getSoLuong());
+            }
         }
     }
-
 
     private String formatPrice(double price) {
         NumberFormat numberFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
@@ -111,6 +122,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
     public static class CartViewHolder extends RecyclerView.ViewHolder {
         TextView productTitle, productPrice, quantity;
         ImageView btnIncrease, btnDecrease, btnDelete, productImage;
+        CheckBox checkboxSelect;
 
         public CartViewHolder(View itemView) {
             super(itemView);
@@ -121,6 +133,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
             btnDecrease = itemView.findViewById(R.id.btnDecrease);
             btnDelete = itemView.findViewById(R.id.btnDelete);
             productImage = itemView.findViewById(R.id.productImage);
+            checkboxSelect = itemView.findViewById(R.id.checkboxSelect);
         }
     }
 

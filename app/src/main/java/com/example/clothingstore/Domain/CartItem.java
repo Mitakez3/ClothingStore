@@ -3,6 +3,7 @@ package com.example.clothingstore.Domain;
 public class CartItem {
     private SanPham sanPham;
     private int quantity;
+    private boolean isSelected = false;;
 
     public CartItem() {
     }
@@ -26,6 +27,10 @@ public class CartItem {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public CartItem(boolean isSelected) {
+        this.isSelected = isSelected;
     }
 }
 
