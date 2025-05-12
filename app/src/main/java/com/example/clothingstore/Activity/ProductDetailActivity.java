@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.clothingstore.Adapter.CommentAdapter;
 import com.example.clothingstore.Domain.Comment;
+import com.example.clothingstore.Domain.SanPham;
 import com.example.clothingstore.R;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.chip.Chip;
@@ -37,6 +38,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -304,15 +306,24 @@ public class ProductDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Lỗi khi thêm giỏ hàng", Toast.LENGTH_SHORT).show());
     }
 
-    private void proceedToPayment(String productId, String tenSP, int giaSP, String hinhSP, int quantity, String size) {
+    private void proceedToPayment(String productId, String tenSP, double giaSP, String hinhSP, int quantity, String size) {
+        List<SanPham> singleProductList = new ArrayList<>();
+        SanPham product = new SanPham(tenSP, giaSP, hinhSP, "", "");
+        product.setSoLuong(quantity);
+        product.setProductId(productId);
+        product.setSize(size);
+        singleProductList.add(product);
+
+        double totalPrice = giaSP * quantity;
+
         Intent intent = new Intent(this, PaymentActivity.class);
-        intent.putExtra("productId", productId);
-        intent.putExtra("tenSP", tenSP);
-        intent.putExtra("giaSP", giaSP);
-        intent.putExtra("hinhSP", hinhSP);
-        intent.putExtra("quantity", quantity);
+        Gson gson = new Gson();
+        intent.putExtra("cartList", gson.toJson(singleProductList));
+        intent.putExtra("totalPrice", totalPrice);
         intent.putExtra("size", size);
         startActivity(intent);
+
+        Toast.makeText(this, "Đã đặt hàng", Toast.LENGTH_SHORT).show();
     }
 
 }

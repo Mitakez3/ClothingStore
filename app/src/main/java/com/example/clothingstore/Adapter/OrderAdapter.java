@@ -84,10 +84,6 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                 break;
         }
 
-        Log.d("OrderAdapter", "Address: " + order.getAddress());
-        Log.d("OrderAdapter", "Phone: " + order.getPhone());
-
-
         holder.tvStatus.setText(statusText);
         holder.tvItemCount.setText(order.getOrderItems().size() + " sản phẩm");
         holder.tvOrderDate.setText("Ngày đặt hàng: " + formatDate(order.getTimestamp()));
