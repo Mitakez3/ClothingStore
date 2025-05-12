@@ -213,7 +213,7 @@ public class ProductDetailActivity extends AppCompatActivity {
             if (actionType.equals("cart")) {
                 addToCart(productId, tenSP, giaSP, hinhSP, quantity[0], selectedSize[0]);
             } else {
-                proceedToPayment(productId, tenSP, giaSP, hinhSP, quantity[0], selectedSize[0]);
+                proceedToPayment(productId, quantity[0],selectedSize[0]);
             }
 
             dialog.dismiss();
@@ -306,24 +306,38 @@ public class ProductDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Lỗi khi thêm giỏ hàng", Toast.LENGTH_SHORT).show());
     }
 
-    private void proceedToPayment(String productId, String tenSP, double giaSP, String hinhSP, int quantity, String size) {
-        List<SanPham> singleProductList = new ArrayList<>();
-        SanPham product = new SanPham(tenSP, giaSP, hinhSP, "", "");
-        product.setSoLuong(quantity);
-        product.setProductId(productId);
-        product.setSize(size);
-        singleProductList.add(product);
+    private void proceedToPayment(String productId, int quantity, String size) {
+        DatabaseReference productRef = FirebaseDatabase.getInstance().getReference("SanPham").child(productId);
+        productRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                SanPham product = snapshot.getValue(SanPham.class);
+                if (product != null) {
+                    product.setProductId(productId);
+                    product.setSoLuong(quantity);
+                    product.setSize(size);
+                    product.setSelected(true);
 
-        double totalPrice = giaSP * quantity;
+                    List<SanPham> singleProductList = new ArrayList<>();
+                    singleProductList.add(product);
 
-        Intent intent = new Intent(this, PaymentActivity.class);
-        Gson gson = new Gson();
-        intent.putExtra("cartList", gson.toJson(singleProductList));
-        intent.putExtra("totalPrice", totalPrice);
-        intent.putExtra("size", size);
-        startActivity(intent);
+                    double totalPrice = product.getGia() * quantity;
 
-        Toast.makeText(this, "Đã đặt hàng", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(ProductDetailActivity.this, PaymentActivity.class);
+                    Gson gson = new Gson();
+                    intent.putExtra("cartList", gson.toJson(singleProductList));
+                    intent.putExtra("totalPrice", totalPrice);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(ProductDetailActivity.this, "Không tìm thấy sản phẩm", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ProductDetailActivity.this, "Lỗi khi tải sản phẩm", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }

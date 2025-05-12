@@ -351,8 +351,10 @@ public class PaymentActivity extends AppCompatActivity {
                 String address = snapshot.child("address").getValue(String.class);
                 String phone = snapshot.child("phone").getValue(String.class);
 
-                if (address == null) address = "";
-                if (phone == null) phone = "";
+                if (address == null || address.trim().isEmpty() || phone == null || phone.trim().isEmpty()) {
+                    Toast.makeText(PaymentActivity.this, "Vui lòng nhập đầy đủ địa chỉ và số điện thoại trước khi đặt hàng", Toast.LENGTH_LONG).show();
+                    return;
+                }
 
                 Map<String, Object> orderData = new HashMap<>();
                 orderData.put("orderId", orderId);
