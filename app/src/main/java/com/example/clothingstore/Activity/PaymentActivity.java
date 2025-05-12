@@ -364,8 +364,8 @@ public class PaymentActivity extends AppCompatActivity {
                 orderData.put("orderItems", orderItems);
                 orderData.put("status", "delivering");
                 orderData.put("timestamp", ServerValue.TIMESTAMP);
-                orderData.put("address", address); // ✅ thêm địa chỉ
-                orderData.put("phone", phone);     // ✅ thêm số điện thoại
+                orderData.put("address", address);
+                orderData.put("phone", phone);
 
                 FirebaseDatabase.getInstance().getReference("orders")
                         .child(orderId)

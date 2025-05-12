@@ -23,6 +23,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class CreateAccount extends AppCompatActivity {
 
@@ -34,7 +35,6 @@ public class CreateAccount extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if(currentUser != null){
             Intent intent = new Intent(getApplicationContext(), Profile.class);
@@ -65,38 +65,54 @@ public class CreateAccount extends AppCompatActivity {
                 password = String.valueOf(passwordEditText.getText());
                 phone = String.valueOf(phoneEditText.getText());
 
-                if (TextUtils.isEmpty(email)){
+                if (TextUtils.isEmpty(email)) {
                     Toast.makeText(CreateAccount.this, "Vui lòng nhập email!", Toast.LENGTH_SHORT).show();
                 }
-                else if (TextUtils.isEmpty(password)){
+                else if (TextUtils.isEmpty(password)) {
                     Toast.makeText(CreateAccount.this, "Vui lòng nhập mật khẩu!", Toast.LENGTH_SHORT).show();
                 }
                 else if (TextUtils.isEmpty(phone)) {
                     Toast.makeText(CreateAccount.this, "Vui lòng nhập số điện thoại!", Toast.LENGTH_SHORT).show();
-                }
+                } else {
+                    // Tạo người dùng Firebase
+                    mAuth.createUserWithEmailAndPassword(email, password)
+                            .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    progressBar.setVisibility(View.GONE);
+                                    if (task.isSuccessful()) {
+                                        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-
-                mAuth.createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                progressBar.setVisibility(View.GONE);
-                                if (task.isSuccessful()) {
-                                    // Account created successfully, do not sign in automatically
-                                    Toast.makeText(CreateAccount.this, "Account created.",
-                                            Toast.LENGTH_SHORT).show();
-                                    Intent intent = new Intent(getApplicationContext(), Login.class);
-                                    startActivity(intent);
-                                    finish();
-                                } else {
-                                    // If account creation fails, display a message to the user.
-                                    Toast.makeText(CreateAccount.this, "Authentication failed.",
-                                            Toast.LENGTH_SHORT).show();
+                                        FirebaseDatabase.getInstance().getReference("users")
+                                                .child(uid)
+                                                .child("phone")
+                                                .setValue(phone)
+                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                        if (task.isSuccessful()) {
+                                                            Toast.makeText(CreateAccount.this, "Tài khoản đã được tạo thành công.",
+                                                                    Toast.LENGTH_SHORT).show();
+                                                            Intent intent = new Intent(getApplicationContext(), Login.class);
+                                                            startActivity(intent);
+                                                            finish();
+                                                        } else {
+                                                            Toast.makeText(CreateAccount.this, "Lưu số điện thoại thất bại.",
+                                                                    Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    }
+                                                });
+                                    } else {
+                                        // Nếu tạo tài khoản thất bại
+                                        Toast.makeText(CreateAccount.this, "Đăng ký tài khoản thất bại.",
+                                                Toast.LENGTH_SHORT).show();
+                                    }
                                 }
-                            }
-                        });
+                            });
+                }
             }
         });
+
 
         TextView cancel = (TextView) findViewById(R.id.cancel);
         cancel.setOnClickListener(new View.OnClickListener() {

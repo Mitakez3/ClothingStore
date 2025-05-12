@@ -77,7 +77,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         for (SanPham item : cartList) {
             // Kiểm tra nếu sản phẩm đã có trong giỏ hàng, nếu có thì cập nhật số lượng
             cartRef.child(item.getProductId()).child("quantity").setValue(item.getSoLuong());
-            cartRef.child(item.getProductId()).child("size").setValue(item.getSize()); // Cập nhật size
+            cartRef.child(item.getProductId()).child("size").setValue(item.getSize());
         }
     }
 
@@ -102,11 +102,10 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 cartList.clear();
                 for (DataSnapshot itemSnap : snapshot.getChildren()) {
-                    String productId = itemSnap.getKey();  // Assuming productId is the key
-                    Integer quantity = itemSnap.child("quantity").getValue(Integer.class);  // Assuming quantity is stored like this
-                    String size = itemSnap.child("size").getValue(String.class);  // Assuming size is stored like this
+                    String productId = itemSnap.getKey();
+                    Integer quantity = itemSnap.child("quantity").getValue(Integer.class);
+                    String size = itemSnap.child("size").getValue(String.class);
                     if (productId != null && quantity != null && size != null) {
-                        // Now load product details from SanPham table using productId
                         loadProductDetails(productId, quantity, size);
                     }
                 }
@@ -135,7 +134,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                     product.setSize(size);
                     cartList.add(product);
 
-                    // 👉 Sau khi thêm sản phẩm, cập nhật giao diện
+                    // Sau khi thêm sản phẩm, cập nhật giao diện
                     cartAdapter.notifyDataSetChanged();
                     updateTotalPrice();
                     emptyCartLayout.setVisibility(cartList.isEmpty() ? View.VISIBLE : View.GONE);
@@ -165,7 +164,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         // Kiểm tra nếu không có sản phẩm nào được chọn
         if (selectedItems.isEmpty()) {
             Toast.makeText(CartActivity.this, "Chọn ít nhất 1 sản phẩm để thanh toán", Toast.LENGTH_SHORT).show();
-            return;  // Dừng lại và không tiếp tục đến màn thanh toán
+            return;
         }
 
         // Chuyển qua màn PaymentActivity với giỏ hàng đã chọn
@@ -189,7 +188,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         double total = 0;
         for (SanPham sanPham : cartList) {
             if (sanPham.isSelected()) {
-                total += sanPham.getGia() * sanPham.getSoLuong();  // Tính tổng tiền chỉ cho sản phẩm đã chọn
+                total += sanPham.getGia() * sanPham.getSoLuong();
             }
         }
         totalPriceTextView.setText(formatPrice(total));
