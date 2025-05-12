@@ -84,33 +84,10 @@
                     android:layout_width="130dp"
                     android:layout_height="wrap_content"
                     android:columnCount="2"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="4dp" />
 
-                    <!-- Các ImageView cho hình preview sản phẩm -->
-                    <ImageView
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/ic_launcher_background"
-                        android:layout_margin="2dp" />
-
-                    <ImageView
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/ic_launcher_background"
-                        android:layout_margin="2dp" />
-
-                    <ImageView
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/ic_launcher_background"
-                        android:layout_margin="2dp" />
-
-                    <ImageView
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/ic_launcher_background"
-                        android:layout_margin="2dp" />
-                </GridLayout>
             </LinearLayout>
 
         </LinearLayout>

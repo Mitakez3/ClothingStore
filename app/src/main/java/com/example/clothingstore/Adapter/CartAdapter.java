@@ -15,6 +15,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.clothingstore.R;
 import com.example.clothingstore.Domain.SanPham;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.Gson;
 
 import java.text.NumberFormat;
@@ -47,7 +51,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         holder.productPrice.setText(formatPrice(currentItem.getGia()));
         holder.quantity.setText(String.valueOf(currentItem.getSoLuong()));
 
-        // Load ảnh bằng Glide
+        // Load image with Glide
         if (currentItem.getHinh() != null && !currentItem.getHinh().isEmpty()) {
             Glide.with(context).load(currentItem.getHinh()).into(holder.productImage);
             holder.productImage.setVisibility(View.VISIBLE);
@@ -55,34 +59,44 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
             holder.productImage.setVisibility(View.GONE);
         }
 
-        // Xử lý nút tăng số lượng
+        // Handle increase, decrease, and delete buttons
         holder.btnIncrease.setOnClickListener(v -> {
             currentItem.setSoLuong(currentItem.getSoLuong() + 1);
             notifyItemChanged(position);
-            saveCart();
             cartUpdatedListener.onCartUpdated();
         });
 
-        // Xử lý nút giảm số lượng
         holder.btnDecrease.setOnClickListener(v -> {
             if (currentItem.getSoLuong() > 1) {
                 currentItem.setSoLuong(currentItem.getSoLuong() - 1);
                 notifyItemChanged(position);
-                saveCart();
                 cartUpdatedListener.onCartUpdated();
             }
         });
 
-        // Xóa sản phẩm khỏi giỏ hàng
         holder.btnDelete.setOnClickListener(v -> {
             cartList.remove(position);
             notifyItemRemoved(position);
             notifyItemRangeChanged(position, cartList.size());
-            saveCart();
+            updateCartInFirebase();
             cartUpdatedListener.onCartUpdated();
             Toast.makeText(context, "Đã xóa khỏi giỏ hàng", Toast.LENGTH_SHORT).show();
         });
     }
+
+
+    private void updateCartInFirebase() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(user.getUid());
+
+        // Chỉ lưu thông tin số lượng của sản phẩm trong Firebase
+        for (SanPham item : cartList) {
+            cartRef.child(item.getProductId()).child("quantity").setValue(item.getSoLuong());
+        }
+    }
+
 
     private String formatPrice(double price) {
         NumberFormat numberFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
@@ -108,15 +122,6 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
             btnDelete = itemView.findViewById(R.id.btnDelete);
             productImage = itemView.findViewById(R.id.productImage);
         }
-    }
-
-    private void saveCart() {
-        SharedPreferences sharedPreferences = context.getSharedPreferences("CartPrefs", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(cartList);
-        editor.putString("cartList", json);
-        editor.apply();
     }
 
     public interface OnCartUpdatedListener {

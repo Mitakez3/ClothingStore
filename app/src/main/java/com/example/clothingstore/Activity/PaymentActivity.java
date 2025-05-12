@@ -25,6 +25,7 @@ import com.example.clothingstore.Domain.OrderItem;
 import com.example.clothingstore.Domain.Voucher;
 import com.example.clothingstore.R;
 import com.example.clothingstore.Domain.SanPham;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -69,9 +70,11 @@ public class PaymentActivity extends AppCompatActivity {
         paymentMethodGroup = findViewById(R.id.paymentMethodGroup);
         btnPlaceOrder = findViewById(R.id.btnPlaceOrder);
 
-        // Load cart data from Intent or SharedPreferences
-        cartList = loadCartData();
         recyclerViewItems.setLayoutManager(new LinearLayoutManager(this));
+        Gson gson = new Gson();
+        String cartJson = getIntent().getStringExtra("cartList");
+        Type type = new TypeToken<List<SanPham>>() {}.getType();
+        cartList = gson.fromJson(cartJson, type);
         recyclerViewItems.setAdapter(new CartAdapter(this, cartList, null));
 
         // Calculate and display total amount
@@ -167,8 +170,6 @@ public class PaymentActivity extends AppCompatActivity {
         bottomSheetDialog.show();
     }
 
-
-
     private void applyVoucher(Voucher newVoucher) {
         selectedVoucher = newVoucher;
 
@@ -196,37 +197,12 @@ public class PaymentActivity extends AppCompatActivity {
         totalAmountTextView.setText(formatPrice(totalAmount));
     }
 
-
-    private List<SanPham> loadCartData() {
-        Gson gson = new Gson();
-        Type type = new TypeToken<ArrayList<SanPham>>() {}.getType();
-
-        // Check if cartList is passed via Intent (from ProductDetailActivity "Buy Now")
-        Intent intent = getIntent();
-        String cartJson = intent.getStringExtra("cartList");
-        if (cartJson != null && !cartJson.isEmpty()) {
-            List<SanPham> cartList = gson.fromJson(cartJson, type);
-            if (cartList != null) {
-                return cartList;
-            }
-        }
-
-        // Fallback to SharedPreferences (from CartActivity)
-        SharedPreferences sharedPreferences = getSharedPreferences("CartPrefs", MODE_PRIVATE);
-        String json = sharedPreferences.getString("cartList", "[]");
-        List<SanPham> cartList = gson.fromJson(json, type);
-        return cartList != null ? cartList : new ArrayList<>();
-    }
-
     private double calculateTotalAmount() {
         double total = 0;
-        for (SanPham sanPham : cartList) {
-            total += sanPham.getGia() * sanPham.getSoLuong();
-        }
-        // Override with totalPrice from Intent if available (for consistency)
-        Intent intent = getIntent();
-        if (intent.hasExtra("totalPrice")) {
-            total = intent.getDoubleExtra("totalPrice", total);
+        if (cartList != null) {
+            for (SanPham sp : cartList) {
+                total += sp.getGia() * sp.getSoLuong();
+            }
         }
         return total;
     }
@@ -275,26 +251,41 @@ public class PaymentActivity extends AppCompatActivity {
         orderData.put("orderItems", orderItems);
         orderData.put("status", "delivering");
         orderData.put("timestamp", ServerValue.TIMESTAMP);
-        Log.d("VoucherSave", "SelectedVoucher: " + selectedVoucher.getVoucherId() + ", UserId: " + userId);
-
 
         FirebaseDatabase.getInstance().getReference("orders")
                 .child(orderId)
                 .setValue(orderData)
                 .addOnSuccessListener(aVoid -> {
                     if (selectedVoucher != null) {
-                        // Lưu voucher đã sử dụng
                         FirebaseDatabase.getInstance().getReference("UsedVouchers")
                                 .child(selectedVoucher.getVoucherId())
                                 .child(userId)
                                 .setValue(true);
                     }
-                    Toast.makeText(this, "Đặt hàng thành công! Mã đơn #" + orderId, Toast.LENGTH_LONG).show();
-                    clearCart();
-                    finish();
+
+                    // Chỉ xóa các sản phẩm đã đặt mua khỏi giỏ hàng
+                    DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(userId);
+                    List<com.google.android.gms.tasks.Task<Void>> deleteTasks = new ArrayList<>();
+
+                    for (SanPham sp : cartList) {
+                        deleteTasks.add(cartRef.child(sp.getProductId()).removeValue());
+                    }
+
+                    Tasks.whenAllComplete(deleteTasks).addOnCompleteListener(task -> {
+                        Toast.makeText(PaymentActivity.this, "Đặt hàng thành công và các sản phẩm đã mua đã bị xóa khỏi giỏ hàng", Toast.LENGTH_SHORT).show();
+
+                        // Chuyển về HomeActivity
+                        Intent intent = new Intent(PaymentActivity.this, HomeActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        finish();
+                    });
+
+                    clearCart(); // Optional nếu bạn dùng SharedPreferences song song
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Đặt hàng thất bại!", Toast.LENGTH_SHORT).show());
     }
+
 
 
 

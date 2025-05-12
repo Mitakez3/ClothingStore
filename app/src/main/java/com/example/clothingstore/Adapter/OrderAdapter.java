@@ -14,7 +14,9 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import com.bumptech.glide.Glide;
+import android.widget.ImageView;
+import android.widget.GridLayout;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,12 +32,10 @@ import java.util.List;
 public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
     private List<Order> orderList;
     private Context context;
-
     public OrderAdapter(List<Order> orderList, Context context) {
         this.orderList = orderList;
         this.context = context;
     }
-
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
         TextView tvOrderId, tvStatus, tvItemCount, tvOrderDate, tvTotalAmount, tvPaymentMethod;
         Button btnAction;
@@ -82,9 +82,32 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
         holder.tvStatus.setText(statusText);
         holder.tvItemCount.setText(order.getOrderItems().size() + " sản phẩm");
-        holder.tvOrderDate.setText("Ngày đặt hàng: " + order.getOrderDate());
+        holder.tvOrderDate.setText("Ngày đặt hàng: " + formatDate(order.getTimestamp()));
         holder.tvTotalAmount.setText("Tổng tiền: " + formatCurrency(order.getTotalAmount()));
         holder.tvPaymentMethod.setText("Phương thức thanh toán: " + order.getPaymentMethod());
+        GridLayout gridLayout = holder.itemView.findViewById(R.id.productImageGrid);
+        gridLayout.removeAllViews(); // Xóa trước nếu tái sử dụng ViewHolder
+
+        List<OrderItem> items = order.getOrderItems();
+        int maxImages = Math.min(4, items.size());
+
+        for (int i = 0; i < maxImages; i++) {
+            ImageView imageView = new ImageView(context);
+            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+            params.width = 160;
+            params.height = 160;
+            params.setMargins(4, 4, 4, 4);
+            imageView.setLayoutParams(params);
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
+            Glide.with(context)
+                    .load(items.get(i).getHinh()) // URL từ Firebase
+                    .into(imageView);
+
+            gridLayout.addView(imageView);
+        }
+
+// Tùy chỉnh layout: bạn có thể thêm điều kiện để đổi số cột nếu muốn
 
         holder.btnAction.setOnClickListener(v -> {
             if ("Đánh giá".equals(holder.btnAction.getText())) {
@@ -120,6 +143,11 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
     private String formatCurrency(int amount) {
         return String.format("%,d VND", amount); // Format tiền tệ
+    }
+
+    private String formatDate(long timestamp) {
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+        return sdf.format(new java.util.Date(timestamp));
     }
 
     private void showReviewDialog(List<OrderItem> orderItems, String customerId) {

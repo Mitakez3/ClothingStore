@@ -26,6 +26,8 @@ import com.example.clothingstore.Domain.Comment;
 import com.example.clothingstore.Adapter.CommentAdapter;
 import com.example.clothingstore.R;
 import com.example.clothingstore.Domain.SanPham;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -223,36 +225,22 @@ public class ProductDetailActivity extends AppCompatActivity {
         return numberFormat.format(price) + " VNĐ";
     }
 
-    private void addToCart(String productId, String tenSP, double giaSP, String hinhSP, int quantity) {
-        SharedPreferences sharedPreferences = getSharedPreferences("CartPrefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-
-        Gson gson = new Gson();
-        String json = sharedPreferences.getString("cartList", "[]");
-        Type type = new TypeToken<ArrayList<SanPham>>() {}.getType();
-        List<SanPham> cartList = gson.fromJson(json, type);
-
-        boolean exists = false;
-        for (SanPham sp : cartList) {
-            if (sp.getProductId() != null && sp.getProductId().equals(productId)) {
-                sp.setSoLuong(sp.getSoLuong() + quantity);
-                exists = true;
-                break;
-            }
+    private void addToCart(String productId, String tenSP, double giaSP, String hinhSP, int soLuong) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "Bạn chưa đăng nhập", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        if (!exists) {
-            SanPham newProduct = new SanPham(tenSP, giaSP, hinhSP, "", "");
-            newProduct.setSoLuong(quantity);
-            newProduct.setProductId(productId);
-            Log.d("ADD_TO_CART", "Added productId: " + newProduct.getProductId());
-            cartList.add(newProduct);
-        }
+        // Lấy tham chiếu đến giỏ hàng của người dùng
+        DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(user.getUid());
 
-        editor.putString("cartList", gson.toJson(cartList));
-        editor.apply();
-        Toast.makeText(this, "Đã thêm vào giỏ hàng!", Toast.LENGTH_SHORT).show();
+        // Chỉ lưu số lượng sản phẩm trong giỏ, không lưu toàn bộ thông tin sản phẩm
+        cartRef.child(productId).child("quantity").setValue(soLuong)
+                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(this, "Lỗi khi thêm giỏ hàng", Toast.LENGTH_SHORT).show());
     }
+
 
 
     private void proceedToPayment(String productId, String tenSP, double giaSP, String hinhSP, int quantity) {

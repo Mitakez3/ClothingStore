@@ -24,6 +24,8 @@ public class SanPhamAdapter extends RecyclerView.Adapter<SanPhamAdapter.SanPhamV
 
     private List<SanPham> sanPhamList;
     private final Context context;
+    private OnAddToCartListener listener;
+
 
     public SanPhamAdapter(List<SanPham> sanPhamList, Context context) {
         this.sanPhamList = sanPhamList;
@@ -37,6 +39,11 @@ public class SanPhamAdapter extends RecyclerView.Adapter<SanPhamAdapter.SanPhamV
                 .inflate(R.layout.item_sanpham, parent, false);
         return new SanPhamViewHolder(itemView);
     }
+
+    public interface OnAddToCartListener {
+        void onAddToCart(String productId);
+    }
+
 
     @Override
     public void onBindViewHolder(@NonNull SanPhamViewHolder holder, int position) {
