@@ -34,8 +34,26 @@
             android:id="@+id/tvOrderId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Order #12345678"
+            android:text="Mã sp: sp1"
             android:textColor="#000"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvQuantity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Số lượng: 1"
+            android:textColor="#000"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="350.000 VNĐ"
+            android:textColor="@color/red"
             android:textSize="13sp"
             android:textStyle="bold" />
 

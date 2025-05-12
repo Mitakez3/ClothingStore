@@ -2,6 +2,7 @@ package com.example.clothingstore.Adapter;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,7 +52,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         holder.productTitle.setText(currentItem.getTenSP());
         holder.productPrice.setText(formatPrice(currentItem.getGia()));
         holder.quantity.setText(String.valueOf(currentItem.getSoLuong()));
-
+        holder.productSize.setText("Size: " + currentItem.getSize());
         holder.checkboxSelect.setChecked(currentItem.isSelected());
         holder.checkboxSelect.setOnCheckedChangeListener((buttonView, isChecked) -> {
             currentItem.setSelected(isChecked);
@@ -120,7 +121,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
     }
 
     public static class CartViewHolder extends RecyclerView.ViewHolder {
-        TextView productTitle, productPrice, quantity;
+        TextView productTitle, productPrice, quantity, productSize;
         ImageView btnIncrease, btnDecrease, btnDelete, productImage;
         CheckBox checkboxSelect;
 
@@ -129,6 +130,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
             productTitle = itemView.findViewById(R.id.productTitle);
             productPrice = itemView.findViewById(R.id.productPrice);
             quantity = itemView.findViewById(R.id.txtQuantity);
+            productSize = itemView.findViewById(R.id.productSize);
             btnIncrease = itemView.findViewById(R.id.btnIncrease);
             btnDecrease = itemView.findViewById(R.id.btnDecrease);
             btnDelete = itemView.findViewById(R.id.btnDelete);

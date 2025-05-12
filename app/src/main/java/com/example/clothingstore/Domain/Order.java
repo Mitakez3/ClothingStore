@@ -5,25 +5,26 @@ import java.util.List;
 public class Order {
     private String orderId;
     private String customerId;
-    private String orderDate;
     private int totalAmount;
     private List<OrderItem> orderItems;
     private String status;
     private long timestamp;
-
+    private String address;
+    private String phone;
     private String paymentMethod;
 
     public Order() {
     }
 
-    public Order(String orderId, String customerId, String orderDate, int totalAmount, List<OrderItem> orderItems, String status, String paymentMethod) {
+    public Order(String orderId, String customerId, int totalAmount, List<OrderItem> orderItems, String status, String paymentMethod, String address, String phone) {
         this.orderId = orderId;
         this.customerId = customerId;
-        this.orderDate = orderDate;
         this.totalAmount = totalAmount;
         this.orderItems = orderItems;
         this.status = status;
         this.paymentMethod = paymentMethod;
+        this.address = address;
+        this.phone = phone;
     }
 
     public String getOrderId() { return orderId; }
@@ -31,9 +32,6 @@ public class Order {
 
     public String getCustomerId() { return customerId; }
     public void setCustomerId(String customerId) { this.customerId = customerId; }
-
-    public String getOrderDate() { return orderDate; }
-    public void setOrderDate(String orderDate) { this.orderDate = orderDate; }
 
     public int getTotalAmount() { return totalAmount; }
     public void setTotalAmount(int totalAmount) { this.totalAmount = totalAmount; }
@@ -53,4 +51,20 @@ public class Order {
 
     public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 }

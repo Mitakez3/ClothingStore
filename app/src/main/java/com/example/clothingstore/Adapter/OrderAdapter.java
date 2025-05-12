@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,7 +38,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         this.context = context;
     }
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
-        TextView tvOrderId, tvStatus, tvItemCount, tvOrderDate, tvTotalAmount, tvPaymentMethod;
+        TextView tvOrderId, tvStatus, tvItemCount, tvOrderDate, tvTotalAmount, tvPaymentMethod, tvOrderAddress, tvPhone;
         Button btnAction;
 
         public OrderViewHolder(@NonNull View itemView) {
@@ -49,6 +50,8 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             tvOrderDate = itemView.findViewById(R.id.tvOrderDate);
             tvTotalAmount = itemView.findViewById(R.id.tvTotalAmount);
             tvPaymentMethod = itemView.findViewById(R.id.tvPaymentMethod);
+            tvOrderAddress = itemView.findViewById(R.id.tvOrderAddress);
+            tvPhone = itemView.findViewById(R.id.tvPhone);
         }
     }
 
@@ -62,6 +65,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     @Override
     public void onBindViewHolder(@NonNull OrderViewHolder holder, int position) {
         Order order = orderList.get(position);
+
         holder.tvOrderId.setText("Mã đơn: #" + order.getOrderId());
         String status = order.getStatus();
         String statusText;
@@ -80,11 +84,19 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                 break;
         }
 
+        Log.d("OrderAdapter", "Address: " + order.getAddress());
+        Log.d("OrderAdapter", "Phone: " + order.getPhone());
+
+
         holder.tvStatus.setText(statusText);
         holder.tvItemCount.setText(order.getOrderItems().size() + " sản phẩm");
         holder.tvOrderDate.setText("Ngày đặt hàng: " + formatDate(order.getTimestamp()));
         holder.tvTotalAmount.setText("Tổng tiền: " + formatCurrency(order.getTotalAmount()));
         holder.tvPaymentMethod.setText("Phương thức thanh toán: " + order.getPaymentMethod());
+        holder.tvOrderAddress.setText("Địa chỉ: " + order.getAddress());
+        holder.tvPhone.setText("SĐT: " + order.getPhone());
+
+
         GridLayout gridLayout = holder.itemView.findViewById(R.id.productImageGrid);
         gridLayout.removeAllViews(); // Xóa trước nếu tái sử dụng ViewHolder
 
@@ -106,8 +118,6 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
             gridLayout.addView(imageView);
         }
-
-// Tùy chỉnh layout: bạn có thể thêm điều kiện để đổi số cột nếu muốn
 
         holder.btnAction.setOnClickListener(v -> {
             if ("Đánh giá".equals(holder.btnAction.getText())) {

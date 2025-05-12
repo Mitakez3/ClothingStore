@@ -7,4 +7,6 @@
     <color name="pink">#FFC0CB</color>
     <color name="red">#FF0000</color>
     <color name="ic_colors">#004CFF</color>
+    <color name="light_gray">#F0F0F0</color>
+    <color name="dark_gray">#808080</color>
 </resources>

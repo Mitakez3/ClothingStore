@@ -29,10 +29,10 @@ public class Profile extends AppCompatActivity {
 
     FirebaseAuth auth;
     Button logout;
-    TextView textView;
+    TextView textView, textPhone, textAddress, textEmail;
     FirebaseUser user;
-    EditText editUsername;
-    Button btnSaveUsername;
+    EditText editUsername, editPhone, editAddress;
+    Button btnSaveUsername, btnSaveAddress;
     DatabaseReference databaseReference;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +45,12 @@ public class Profile extends AppCompatActivity {
         textView = findViewById(R.id.username);
         editUsername = findViewById(R.id.edit_username);
         btnSaveUsername = findViewById(R.id.btn_save_username);
-
+        editPhone = findViewById(R.id.edit_phone);
+        editAddress = findViewById(R.id.edit_address);
+        textEmail = findViewById(R.id.email);
+        textPhone = findViewById(R.id.phone);
+        textAddress = findViewById(R.id.address);
+        btnSaveAddress = findViewById(R.id.btn_save_address);
 
         user = auth.getCurrentUser();
         if (user == null) {
@@ -58,7 +63,7 @@ public class Profile extends AppCompatActivity {
             // Lấy tham chiếu đến Realtime Database
             databaseReference = FirebaseDatabase.getInstance().getReference("users").child(uid);
             // Lấy username từ Realtime Database
-            loadUsername();
+            loadUserInfo();
         }
         // Thêm sự kiện click cho nút "Save Username"
         btnSaveUsername.setOnClickListener(new View.OnClickListener() {
@@ -67,6 +72,28 @@ public class Profile extends AppCompatActivity {
                 saveUsername(); // Gọi phương thức saveUsername() khi nút được nhấn
             }
         });
+
+        btnSaveAddress.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String phone = editPhone.getText().toString().trim();
+                String address = editAddress.getText().toString().trim();
+
+                if (phone.isEmpty() || address.isEmpty()) {
+                    Toast.makeText(Profile.this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                databaseReference.child("phone").setValue(phone);
+                databaseReference.child("address").setValue(address);
+                Toast.makeText(Profile.this, "Lưu thông tin thành công", Toast.LENGTH_SHORT).show();
+
+                // Cập nhật giao diện
+                textPhone.setText("Phone: " + phone);
+                textAddress.setText("Address: " + address);
+            }
+        });
+
 
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,28 +122,43 @@ public class Profile extends AppCompatActivity {
         // Lưu username vào Realtime Database
         databaseReference.child("username").setValue(username);
         Toast.makeText(this, "Username saved", Toast.LENGTH_SHORT).show();
-        loadUsername();
+        loadUserInfo();
     }
-    private void loadUsername() {
+
+    private void loadUserInfo() {
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     String username = snapshot.child("username").getValue(String.class);
+                    String phone = snapshot.child("phone").getValue(String.class);
+                    String address = snapshot.child("address").getValue(String.class);
+
                     if (username != null) {
                         textView.setText(username);
+                        textEmail.setText("Email: " + user.getEmail());
                     } else {
                         textView.setText(user.getEmail());
+                        textEmail.setText(View.GONE);
                     }
-                } else {
-                    textView.setText(user.getEmail());
+
+                    if (phone != null) {
+                        textPhone.setText("Số điện thoại: " + phone);
+                        editPhone.setText(phone);
+                    }
+
+                    if (address != null) {
+                        textAddress.setText("Địa chỉ: " + address);
+                        editAddress.setText(address);
+                    }
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(Profile.this, "Failed to load username", Toast.LENGTH_SHORT).show();
+                Toast.makeText(Profile.this, "Không tải được thông tin", Toast.LENGTH_SHORT).show();
             }
         });
     }
+
 }

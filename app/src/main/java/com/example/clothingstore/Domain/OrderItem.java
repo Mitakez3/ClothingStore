@@ -5,6 +5,7 @@ public class OrderItem {
     private String tenSP;
     private String hinh;
     private Double gia;
+    private String size;
     // thêm các trường khác nếu có: mô tả, thể loại, v.v.
     private int soLuong;
     public OrderItem() {}
@@ -39,4 +40,7 @@ public class OrderItem {
 
     public Double getGia() { return gia; }
     public void setGia(Double gia) { this.gia = gia; }
+
+    public String getSize() { return size; }
+    public void setSize(String size) { this.size = size; }
 }

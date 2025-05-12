@@ -26,10 +26,9 @@ public class ProfileFragment extends Fragment {
     private FirebaseAuth auth;
     private FirebaseUser user;
     private DatabaseReference databaseReference;
-
-    private TextView textViewUsername, textNotLoggedIn;
-    private EditText editUsername;
-    private Button btnSaveUsername, btnLogout, btnLogin;
+    private TextView textViewUsername, textNotLoggedIn, textEmail, textPhone, textAddress;
+    private EditText editUsername, editPhone, editAddress;
+    private Button btnSaveUsername, btnLogout, btnLogin, btnSaveAddress;
     private LinearLayout profileLayout, loginLayout;
 
     public ProfileFragment() {}
@@ -45,6 +44,13 @@ public class ProfileFragment extends Fragment {
 
         profileLayout = view.findViewById(R.id.profile_layout);
         loginLayout = view.findViewById(R.id.login_layout);
+
+        textEmail = view.findViewById(R.id.email);
+        textPhone = view.findViewById(R.id.phone);
+        textAddress = view.findViewById(R.id.address);
+        editPhone = view.findViewById(R.id.edit_phone);
+        editAddress = view.findViewById(R.id.edit_address);
+        btnSaveAddress = view.findViewById(R.id.btn_save_address);
 
         textViewUsername = view.findViewById(R.id.username);
         editUsername = view.findViewById(R.id.edit_username);
@@ -70,9 +76,10 @@ public class ProfileFragment extends Fragment {
 
             String uid = user.getUid();
             databaseReference = FirebaseDatabase.getInstance().getReference("users").child(uid);
-            loadUsername();
+            loadUserInfo();
 
             btnSaveUsername.setOnClickListener(v -> saveUsername());
+            btnSaveAddress.setOnClickListener(v -> saveAddressAndPhone());
             btnLogout.setOnClickListener(v -> {
                 FirebaseAuth.getInstance().signOut();
                 // Sau khi logout, refresh lại fragment
@@ -96,28 +103,58 @@ public class ProfileFragment extends Fragment {
         }
         databaseReference.child("username").setValue(username);
         Toast.makeText(getContext(), "Username saved", Toast.LENGTH_SHORT).show();
-        loadUsername();
+        loadUserInfo();
     }
 
-    private void loadUsername() {
+    private void saveAddressAndPhone() {
+        String phone = editPhone.getText().toString().trim();
+        String address = editAddress.getText().toString().trim();
+
+        if (phone.isEmpty() || address.isEmpty()) {
+            Toast.makeText(getContext(), "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        databaseReference.child("phone").setValue(phone);
+        databaseReference.child("address").setValue(address);
+        Toast.makeText(getContext(), "Lưu thông tin thành công", Toast.LENGTH_SHORT).show();
+
+        textPhone.setText("Số điện thoại: " + phone);
+        textAddress.setText("Địa chỉ: " + address);
+    }
+
+    private void loadUserInfo() {
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     String username = snapshot.child("username").getValue(String.class);
+                    String phone = snapshot.child("phone").getValue(String.class);
+                    String address = snapshot.child("address").getValue(String.class);
+
                     if (username != null) {
                         textViewUsername.setText(username);
+                        textEmail.setText("Email: " + user.getEmail());
                     } else {
                         textViewUsername.setText(user.getEmail());
+                        textEmail.setVisibility(View.GONE);
                     }
-                } else {
-                    textViewUsername.setText(user.getEmail());
+
+                    if (phone != null) {
+                        textPhone.setText("Số điện thoại: " + phone);
+                        editPhone.setText(phone);
+                    }
+
+                    if (address != null) {
+                        textAddress.setText("Địa chỉ: " + address);
+                        editAddress.setText(address);
+                    }
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "Failed to load username", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Không tải được thông tin", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -13,8 +13,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.clothingstore.Activity.ProductDetailActivity;
+import com.example.clothingstore.Domain.Comment;
 import com.example.clothingstore.R;
 import com.example.clothingstore.Domain.SanPham;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.NumberFormat;
 import java.util.List;
@@ -61,6 +67,53 @@ public class SanPhamAdapter extends RecyclerView.Adapter<SanPhamAdapter.SanPhamV
             holder.hinhImageView.setVisibility(View.GONE);
         }
 
+        // Lấy trung bình đánh giá từ Firebase
+        DatabaseReference ratingRef = FirebaseDatabase.getInstance()
+                .getReference("Comments").child(sanPham.getProductId());
+
+        ratingRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                double total = 0;
+                int count = 0;
+                for (DataSnapshot snap : snapshot.getChildren()) {
+                    Comment cmt = snap.getValue(Comment.class);
+                    if (cmt != null) {
+                        total += cmt.getRating();
+                        count++;
+                    }
+                }
+                double avg = count > 0 ? total / count : 0;
+                if (avg == 0) {
+                    holder.ratingTextView.setText("Chưa có đánh giá");
+                } else {
+                    holder.ratingTextView.setText("⭐ " + String.format("%.1f", avg));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                holder.ratingTextView.setText("⭐ -");
+            }
+        });
+
+        // Lấy số lượng đã bán từ Firebase
+        DatabaseReference soldRef = FirebaseDatabase.getInstance()
+                .getReference("soldCount").child(sanPham.getProductId());
+
+        soldRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int sold = snapshot.exists() ? snapshot.getValue(Integer.class) : 0;
+                holder.soldTextView.setText("Đã bán " + sold);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                holder.soldTextView.setText("Đã bán ?");
+            }
+        });
+
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, ProductDetailActivity.class);
             intent.putExtra("productId", sanPham.getProductId());
@@ -71,6 +124,7 @@ public class SanPhamAdapter extends RecyclerView.Adapter<SanPhamAdapter.SanPhamV
             context.startActivity(intent);
         });
     }
+
 
     @Override
     public int getItemCount() {
@@ -84,13 +138,16 @@ public class SanPhamAdapter extends RecyclerView.Adapter<SanPhamAdapter.SanPhamV
 
     static class SanPhamViewHolder extends RecyclerView.ViewHolder {
         ImageView hinhImageView;
-        TextView tenSPTextView, giaTextView;
+        TextView tenSPTextView, giaTextView, ratingTextView, soldTextView;
 
         SanPhamViewHolder(@NonNull View itemView) {
             super(itemView);
             hinhImageView = itemView.findViewById(R.id.hinhImageView);
             tenSPTextView = itemView.findViewById(R.id.tenSPTextView);
             giaTextView = itemView.findViewById(R.id.giaTextView);
+            ratingTextView = itemView.findViewById(R.id.ratingTextView);
+            soldTextView = itemView.findViewById(R.id.soldTextView);
+
         }
     }
 

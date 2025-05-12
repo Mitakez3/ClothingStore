@@ -21,7 +21,9 @@ import com.example.clothingstore.Domain.OrderItem;
 import com.example.clothingstore.R;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class ReviewProductAdapter extends RecyclerView.Adapter<ReviewProductAdapter.ViewHolder> {
     private List<OrderItem> itemList;
@@ -91,6 +93,9 @@ public class ReviewProductAdapter extends RecyclerView.Adapter<ReviewProductAdap
         holder.tvTenSP.setText(item.getTenSP());
         holder.tvOrderId.setText("Mã sản phẩm: " + item.getProductId());
 
+        holder.tvQuantity.setText("Số lượng: " + item.getSoLuong());
+        holder.tvPrice.setText(formatPrice(item.getGia()));
+
         // Load ảnh sản phẩm nếu có (giả sử có URL hình trong item.getHinh())
         Glide.with(context)
                 .load(item.getHinh())
@@ -102,6 +107,13 @@ public class ReviewProductAdapter extends RecyclerView.Adapter<ReviewProductAdap
         });
     }
 
+    private String formatPrice(double price) {
+        NumberFormat numberFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
+        return numberFormat.format(price) + " VNĐ";
+    }
+
+
+
 
     @Override
     public int getItemCount() {
@@ -109,7 +121,7 @@ public class ReviewProductAdapter extends RecyclerView.Adapter<ReviewProductAdap
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTenSP, tvOrderId, tvDate;
+        TextView tvTenSP, tvOrderId, tvDate, tvPrice, tvQuantity;
         ImageView imgHinh;
         Button btnReview;
 
@@ -119,6 +131,8 @@ public class ReviewProductAdapter extends RecyclerView.Adapter<ReviewProductAdap
             tvOrderId = itemView.findViewById(R.id.tvOrderId);
             imgHinh = itemView.findViewById(R.id.imgHinh);
             btnReview = itemView.findViewById(R.id.btnReview);
+            tvPrice = itemView.findViewById(R.id.tvPrice);
+            tvQuantity = itemView.findViewById(R.id.tvQuantity);
         }
     }
 }

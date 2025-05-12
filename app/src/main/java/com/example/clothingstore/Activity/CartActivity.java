@@ -74,12 +74,13 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
 
         DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(user.getUid());
 
-        cartRef.removeValue(); // Xoá giỏ cũ trước khi ghi lại
-
         for (SanPham item : cartList) {
+            // Kiểm tra nếu sản phẩm đã có trong giỏ hàng, nếu có thì cập nhật số lượng
             cartRef.child(item.getProductId()).child("quantity").setValue(item.getSoLuong());
+            cartRef.child(item.getProductId()).child("size").setValue(item.getSize()); // Cập nhật size
         }
     }
+
 
     private void loadCartFromFirebase() {
         // Lấy userId từ SharedPreferences
@@ -103,10 +104,10 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 for (DataSnapshot itemSnap : snapshot.getChildren()) {
                     String productId = itemSnap.getKey();  // Assuming productId is the key
                     Integer quantity = itemSnap.child("quantity").getValue(Integer.class);  // Assuming quantity is stored like this
-
-                    if (productId != null && quantity != null) {
+                    String size = itemSnap.child("size").getValue(String.class);  // Assuming size is stored like this
+                    if (productId != null && quantity != null && size != null) {
                         // Now load product details from SanPham table using productId
-                        loadProductDetails(productId, quantity);
+                        loadProductDetails(productId, quantity, size);
                     }
                 }
                 cartAdapter.notifyDataSetChanged();
@@ -122,15 +123,16 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         });
     }
 
-    private void loadProductDetails(String productId, Integer quantity) {
+    private void loadProductDetails(String productId, Integer quantity, String size) {
         DatabaseReference productRef = FirebaseDatabase.getInstance().getReference("SanPham").child(productId);
         productRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 SanPham product = snapshot.getValue(SanPham.class);
                 if (product != null) {
-                    product.setProductId(productId); // GÁN productId CHO ĐỐI TƯỢNG
+                    product.setProductId(productId);
                     product.setSoLuong(quantity);
+                    product.setSize(size);
                     cartList.add(product);
 
                     // 👉 Sau khi thêm sản phẩm, cập nhật giao diện

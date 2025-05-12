@@ -7,6 +7,7 @@ public class SanPham {
     private String MoTa;
     private String TheLoai;
     private int soLuong;
+    private String size;
 
     private boolean isSelected;
 
@@ -68,6 +69,14 @@ public class SanPham {
         this.soLuong = soLuong;
     }
 
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
     public boolean isSelected() {
         return isSelected;
     }
@@ -75,4 +84,5 @@ public class SanPham {
     public void setSelected(boolean selected) {
         isSelected = selected;
     }
+
 }

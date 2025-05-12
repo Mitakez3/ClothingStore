@@ -56,6 +56,23 @@
                     android:textSize="14sp"
                     android:layout_marginTop="4dp" />
 
+                <TextView
+                    android:id="@+id/tvOrderAddress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Địa chỉ giao hàng: 123A TDM BD"
+                    android:textSize="14sp"
+                    android:layout_marginTop="4dp" />
+
+                <TextView
+                    android:id="@+id/tvPhone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="SĐT: 0123456789"
+                    android:textColor="@android:color/black"
+                    android:textSize="14sp"
+                    android:layout_marginTop="4dp" />
+
                 <LinearLayout
                     android:orientation="horizontal"
                     android:layout_width="wrap_content"

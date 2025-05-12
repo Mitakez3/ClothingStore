@@ -26,5 +26,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Đóng"
+        android:backgroundTint="@color/ic_colors"
         android:layout_marginTop="8dp"/>
 </LinearLayout>

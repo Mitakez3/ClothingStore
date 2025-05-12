@@ -52,6 +52,37 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="20dp"/>
 
+    <LinearLayout
+        android:id="@+id/emptyOrderLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/MyOrdersHeader"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/imgEmptyOrder"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/ic_cart"
+            app:tint="@color/gray"/>
+
+        <TextView
+            android:id="@+id/tvEmptyOrder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Đơn hàng đang trống."
+            android:textSize="18sp"
+            android:textStyle="italic"
+            android:textColor="@color/gray"
+            android:layout_marginTop="8dp"/>
+    </LinearLayout>
+
+
     <!-- RecyclerView hiển thị đơn hàng -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewOrders"

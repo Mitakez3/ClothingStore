@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -28,12 +29,16 @@ import com.example.clothingstore.Domain.SanPham;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.annotations.Nullable;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -51,7 +56,7 @@ import java.util.Set;
 public class PaymentActivity extends AppCompatActivity {
 
     private RecyclerView recyclerViewItems;
-    private TextView totalAmountTextView;
+    private TextView totalAmountTextView, tvAddress, tvChangeAddress;
     private RadioGroup paymentMethodGroup;
     private Button btnPlaceOrder;
     private List<SanPham> cartList;
@@ -59,6 +64,9 @@ public class PaymentActivity extends AppCompatActivity {
     private String userId;
     private Voucher selectedVoucher = null;
     private double originalTotalAmount;
+    private FirebaseAuth auth;
+    private FirebaseUser user;
+    private DatabaseReference databaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +77,29 @@ public class PaymentActivity extends AppCompatActivity {
         totalAmountTextView = findViewById(R.id.txtTotalAmount);
         paymentMethodGroup = findViewById(R.id.paymentMethodGroup);
         btnPlaceOrder = findViewById(R.id.btnPlaceOrder);
+
+        tvAddress = findViewById(R.id.tvAddress);
+        tvChangeAddress = findViewById(R.id.tvChangeAddress);
+        user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            String uid = user.getUid();
+            databaseReference = FirebaseDatabase.getInstance().getReference("users").child(uid);
+            loadUserAddress();
+        }
+        tvAddress.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showChangeAddressDialog();
+            }
+        });
+
+        tvChangeAddress.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showChangeAddressDialog();
+            }
+        });
+
 
         recyclerViewItems.setLayoutManager(new LinearLayoutManager(this));
         Gson gson = new Gson();
@@ -93,6 +124,72 @@ public class PaymentActivity extends AppCompatActivity {
         LinearLayout layoutDiscount = findViewById(R.id.layoutDiscount);
         layoutDiscount.setOnClickListener(v -> showVoucherBottomSheet());
         btnPlaceOrder.setOnClickListener(v -> placeOrder());
+    }
+
+    private void loadUserAddress() {
+        databaseReference.child("address").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String address = snapshot.getValue(String.class);
+                if (address != null && !address.isEmpty()) {
+                    tvAddress.setText(address);
+                    tvAddress.setTextColor(getResources().getColor(R.color.black));
+                } else {
+                    tvAddress.setText("Nhập địa chỉ của bạn");
+                    tvAddress.setTextColor(getResources().getColor(R.color.gray));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(PaymentActivity.this, "Lỗi khi tải địa chỉ", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void showChangeAddressDialog() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        View view = LayoutInflater.from(this).inflate(R.layout.bottom_dialog_address, null);
+        dialog.setContentView(view);
+
+        EditText edtPhone = view.findViewById(R.id.edtDialogPhone);
+        EditText edtAddress = view.findViewById(R.id.edtDialogAddress);
+        Button btnSave = view.findViewById(R.id.btnDialogSave);
+
+        // Load dữ liệu hiện tại
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String phone = snapshot.child("phone").getValue(String.class);
+                String address = snapshot.child("address").getValue(String.class);
+
+                if (phone != null) edtPhone.setText(phone);
+                if (address != null) edtAddress.setText(address);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        btnSave.setOnClickListener(v -> {
+            String newPhone = edtPhone.getText().toString().trim();
+            String newAddress = edtAddress.getText().toString().trim();
+
+            if (newPhone.isEmpty() || newAddress.isEmpty()) {
+                Toast.makeText(PaymentActivity.this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            databaseReference.child("phone").setValue(newPhone);
+            databaseReference.child("address").setValue(newAddress).addOnSuccessListener(unused -> {
+                tvAddress.setText(newAddress);
+                tvAddress.setTextColor(getResources().getColor(R.color.black));
+                Toast.makeText(PaymentActivity.this, "Đã cập nhật địa chỉ", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            });
+        });
+
+        dialog.show();
     }
 
     private void showVoucherBottomSheet() {
@@ -247,47 +344,90 @@ public class PaymentActivity extends AppCompatActivity {
             }
         }
 
-        Map<String, Object> orderData = new HashMap<>();
-        orderData.put("orderId", orderId);
-        orderData.put("customerId", userId);
-        orderData.put("paymentMethod", paymentMethod);
-        orderData.put("totalAmount", totalAmount);
-        orderData.put("orderItems", orderItems);
-        orderData.put("status", "delivering");
-        orderData.put("timestamp", ServerValue.TIMESTAMP);
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String address = snapshot.child("address").getValue(String.class);
+                String phone = snapshot.child("phone").getValue(String.class);
 
-        FirebaseDatabase.getInstance().getReference("orders")
-                .child(orderId)
-                .setValue(orderData)
-                .addOnSuccessListener(aVoid -> {
-                    if (selectedVoucher != null) {
-                        FirebaseDatabase.getInstance().getReference("UsedVouchers")
-                                .child(selectedVoucher.getVoucherId())
-                                .child(userId)
-                                .setValue(true);
-                    }
+                if (address == null) address = "";
+                if (phone == null) phone = "";
 
-                    // Chỉ xóa các sản phẩm đã chọn khỏi giỏ hàng
-                    DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(userId);
-                    List<com.google.android.gms.tasks.Task<Void>> deleteTasks = new ArrayList<>();
+                Map<String, Object> orderData = new HashMap<>();
+                orderData.put("orderId", orderId);
+                orderData.put("customerId", userId);
+                orderData.put("paymentMethod", paymentMethod);
+                orderData.put("totalAmount", totalAmount);
+                orderData.put("orderItems", orderItems);
+                orderData.put("status", "delivering");
+                orderData.put("timestamp", ServerValue.TIMESTAMP);
+                orderData.put("address", address); // ✅ thêm địa chỉ
+                orderData.put("phone", phone);     // ✅ thêm số điện thoại
 
-                    for (SanPham sp : selectedItems) {
-                        deleteTasks.add(cartRef.child(sp.getProductId()).removeValue());
-                    }
+                FirebaseDatabase.getInstance().getReference("orders")
+                        .child(orderId)
+                        .setValue(orderData)
+                        .addOnSuccessListener(aVoid -> {
+                            // giữ nguyên phần xử lý sau khi đặt hàng thành công (update soldCount, xóa giỏ, toast, chuyển màn...)
 
-                    Tasks.whenAllComplete(deleteTasks).addOnCompleteListener(task -> {
-                        Toast.makeText(PaymentActivity.this, "Đặt hàng thành công và các sản phẩm đã mua đã bị xóa khỏi giỏ hàng", Toast.LENGTH_SHORT).show();
+                            for (SanPham sp : selectedItems) {
+                                DatabaseReference soldRef = FirebaseDatabase.getInstance()
+                                        .getReference("soldCount")
+                                        .child(sp.getProductId());
 
-                        // Chuyển về HomeActivity
-                        Intent intent = new Intent(PaymentActivity.this, HomeActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                        finish();
-                    });
+                                soldRef.runTransaction(new Transaction.Handler() {
+                                    @NonNull
+                                    @Override
+                                    public Transaction.Result doTransaction(@NonNull MutableData currentData) {
+                                        Integer currentCount = currentData.getValue(Integer.class);
+                                        if (currentCount == null) {
+                                            currentData.setValue(sp.getSoLuong());
+                                        } else {
+                                            currentData.setValue(currentCount + sp.getSoLuong());
+                                        }
+                                        return Transaction.success(currentData);
+                                    }
 
-                    clearCart();
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Đặt hàng thất bại!", Toast.LENGTH_SHORT).show());
+                                    @Override
+                                    public void onComplete(@Nullable DatabaseError error, boolean committed, @Nullable DataSnapshot currentData) {
+                                    }
+                                });
+                            }
+
+                            if (selectedVoucher != null) {
+                                FirebaseDatabase.getInstance().getReference("UsedVouchers")
+                                        .child(selectedVoucher.getVoucherId())
+                                        .child(userId)
+                                        .setValue(true);
+                            }
+
+                            DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(userId);
+                            List<com.google.android.gms.tasks.Task<Void>> deleteTasks = new ArrayList<>();
+
+                            for (SanPham sp : selectedItems) {
+                                deleteTasks.add(cartRef.child(sp.getProductId()).removeValue());
+                            }
+
+                            Tasks.whenAllComplete(deleteTasks).addOnCompleteListener(task -> {
+                                Toast.makeText(PaymentActivity.this, "Đặt hàng thành công và các sản phẩm đã bị xóa khỏi giỏ hàng", Toast.LENGTH_SHORT).show();
+
+                                Intent intent = new Intent(PaymentActivity.this, HomeActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                finish();
+                            });
+
+                            clearCart();
+                        })
+                        .addOnFailureListener(e -> Toast.makeText(PaymentActivity.this, "Đặt hàng thất bại!", Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(PaymentActivity.this, "Không lấy được thông tin người dùng", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 

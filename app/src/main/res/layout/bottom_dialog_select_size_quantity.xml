@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutBottomSheet"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Tiêu đề chọn size -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Chọn size"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Dòng các size -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- GridLayout to make buttons wrap to the next line -->
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
+            android:gravity="center">
+
+            <!-- Size buttons -->
+            <Button
+                android:id="@+id/btnSizeXS"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="XS"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/light_gray"
+                android:textColor="@android:color/black"
+                android:padding="12dp"/>
+
+            <Button
+                android:id="@+id/btnSizeS"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="S"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/light_gray"
+                android:textColor="@android:color/black"
+                android:padding="12dp"/>
+
+            <Button
+                android:id="@+id/btnSizeM"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="M"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/light_gray"
+                android:textColor="@android:color/black"
+                android:padding="12dp"/>
+
+            <Button
+                android:id="@+id/btnSizeL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="L"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/light_gray"
+                android:textColor="@android:color/black"
+                android:padding="12dp"/>
+
+            <Button
+                android:id="@+id/btnSizeXL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="XL"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/light_gray"
+                android:textColor="@android:color/black"
+                android:padding="12dp"/>
+
+            <Button
+                android:id="@+id/btnSizeXXL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="XXL"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/light_gray"
+                android:textColor="@android:color/black"
+                android:padding="12dp"/>
+
+            <Button
+                android:id="@+id/btnSize3XL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3XL"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/light_gray"
+                android:textColor="@android:color/black"
+                android:padding="12dp"/>
+
+        </GridLayout>
+    </LinearLayout>
+
+
+    <!-- Số lượng -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Số lượng"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/btnDecrease"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/less"
+            android:contentDescription="Giảm số lượng" />
+
+        <TextView
+            android:id="@+id/tvQuantity"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="1"
+            android:textSize="18sp" />
+
+        <ImageView
+            android:id="@+id/btnIncrease"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/more"
+            android:contentDescription="Tăng số lượng" />
+    </LinearLayout>
+
+    <!-- Nút hành động -->
+    <Button
+        android:id="@+id/btnAction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Thêm vào giỏ hàng"
+        android:layout_marginTop="24dp"
+        android:backgroundTint="#004CFF"
+        android:textColor="@android:color/white" />
+</LinearLayout>
