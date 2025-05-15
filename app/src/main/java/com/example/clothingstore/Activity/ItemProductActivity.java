@@ -52,7 +52,6 @@ public class ItemProductActivity extends AppCompatActivity {
         int spacing = getResources().getDimensionPixelSize(R.dimen.item_spacing);
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(2, spacing, true));
 
-
         recyclerViewCategories = findViewById(R.id.recyclerViewCategory);
         recyclerViewCategories.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         loadCategories();

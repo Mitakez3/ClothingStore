@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@color/white">
 
     <TextView
         android:text="Quản lý tồn kho"
@@ -15,18 +16,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
+    <!-- RecyclerView hiển thị danh sách sản phẩm -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewInventory"
+        android:id="@+id/rvSanPham"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"/>
 
+    <!-- Nút thêm sản phẩm mới (mở phần thêm sản phẩm) -->
     <Button
         android:id="@+id/btnAddProduct"
         android:text="Thêm sản phẩm mới"
-
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp" />
-
+        android:backgroundTint="@color/ic_colors"
+        android:layout_marginTop="8dp"/>
 </LinearLayout>

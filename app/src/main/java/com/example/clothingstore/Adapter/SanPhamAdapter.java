@@ -31,6 +31,15 @@ public class SanPhamAdapter extends RecyclerView.Adapter<SanPhamAdapter.SanPhamV
     private List<SanPham> sanPhamList;
     private final Context context;
     private OnAddToCartListener listener;
+    private OnItemClickListener onItemClickListener;
+
+    public interface OnItemClickListener {
+        void onItemClick(String productId);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.onItemClickListener = listener;
+    }
 
 
     public SanPhamAdapter(List<SanPham> sanPhamList, Context context) {
@@ -122,6 +131,12 @@ public class SanPhamAdapter extends RecyclerView.Adapter<SanPhamAdapter.SanPhamV
             intent.putExtra("hinhSP", sanPham.getHinh());
             intent.putExtra("MoTa", sanPham.getMoTa());
             context.startActivity(intent);
+        });
+
+        holder.itemView.setOnClickListener(v -> {
+            if (onItemClickListener != null) {
+                onItemClickListener.onItemClick(sanPham.getProductId());
+            }
         });
     }
 

@@ -6,21 +6,15 @@ public class SanPham {
     private String Hinh;
     private String MoTa;
     private String TheLoai;
-    private int soLuong;
+    private int SoLuong;
     private String size;
-
     private boolean isSelected;
-
     private String productId;
-
     private int soldCount;
     private boolean isHotCategory = false;
 
-
-
     public SanPham() {
     }
-
 
     public SanPham(String TenSP, double Gia, String Hinh, String MoTa, String TheLoai) {
         this.TenSP = TenSP;
@@ -28,7 +22,7 @@ public class SanPham {
         this.Hinh = Hinh;
         this.MoTa = MoTa;
         this.TheLoai = TheLoai;
-        this.soLuong = 1;
+        this.SoLuong = 1;
     }
     public void setSoldCount(int soldCount) {
         this.soldCount = soldCount;
@@ -37,7 +31,7 @@ public class SanPham {
         return TenSP;
     }
     public void setTenSP(String tenSP) {
-        this.TenSP = tenSP;
+        this.TenSP = TenSP;
     }
 
     public double getGia() {
@@ -70,10 +64,10 @@ public class SanPham {
         this.productId = productId;
     }
     public int getSoLuong() {
-        return soLuong;
+        return SoLuong;
     }
-    public void setSoLuong(int soLuong) {
-        this.soLuong = soLuong;
+    public void setSoLuong(int SoLuong) {
+        this.SoLuong = SoLuong;
     }
 
     public String getSize() {
