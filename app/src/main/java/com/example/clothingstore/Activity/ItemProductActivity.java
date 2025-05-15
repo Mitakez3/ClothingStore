@@ -38,7 +38,6 @@ public class ItemProductActivity extends AppCompatActivity {
     private SanPhamAdapter sanPhamAdapter;
     private EditText searchBar;
     private List<SanPham> sanPhamList = new ArrayList<>();
-
     private ImageView btnCart;
 
     @Override

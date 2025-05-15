@@ -65,10 +65,8 @@ public class ShopFragment extends Fragment {
 
         // 2. HOT horizontal list
         recyclerViewHot = view.findViewById(R.id.recyclerViewHot); // KHÔNG dùng getActivity().findViewById!
-
         recyclerViewHot.setLayoutManager(new GridLayoutManager(getContext(), 2));
         recyclerViewHot.addItemDecoration(new GridSpacingItemDecoration(2, spacing, true));
-
 
         // 3. Categories horizontal list
         recyclerViewCategories = view.findViewById(R.id.recyclerViewCategory);
@@ -76,13 +74,25 @@ public class ShopFragment extends Fragment {
                 new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false)
         );
 
-        // bỏ listener trên cardHotFilter (không cần bấm nữa)
-
-        loadSanPham();    // load cả 3 danh sách
+        loadSanPham();
         loadCategories();
 
-        // search…
-        // cart / profile…
+        searchBar = view.findViewById(R.id.searchBar);
+        btnCart = view.findViewById(R.id.btnCart);
+
+        btnCart.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), CartActivity.class);
+            startActivity(intent);
+        });
+
+        searchBar.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterSanPham(s.toString());
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
         return view;
     }
 

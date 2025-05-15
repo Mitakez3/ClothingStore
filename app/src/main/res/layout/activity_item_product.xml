@@ -169,7 +169,7 @@
         android:id="@+id/btnCart"
         android:layout_width="75dp"
         android:layout_height="75dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="12dp"
         android:layout_marginBottom="105dp"
         android:background="@drawable/bg_square_rounded"
         android:elevation="8dp"
