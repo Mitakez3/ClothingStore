@@ -58,6 +58,8 @@ public class InventoryActivity extends AppCompatActivity {
         loadSanPhamData();
 
         sanPhamAdapter.setOnItemClickListener(productId -> loadSanPhamDetailAndShowDialog(productId));
+
+        findViewById(R.id.btnAddProduct).setOnClickListener(v -> showAddProductDialog());
     }
 
     private void loadSanPhamData() {
@@ -102,13 +104,100 @@ public class InventoryActivity extends AppCompatActivity {
         });
     }
 
+    private void showAddProductDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Thêm sản phẩm mới");
+
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_product, null);
+
+        EditText edtMaSP = dialogView.findViewById(R.id.edtMaSP);
+        EditText edtTenSP = dialogView.findViewById(R.id.edtTenSP);
+        EditText edtGia = dialogView.findViewById(R.id.edtGia);
+        EditText edtHinh = dialogView.findViewById(R.id.edtHinh);
+        EditText edtMoTa = dialogView.findViewById(R.id.edtMoTa);
+        Spinner spinnerTheLoai = dialogView.findViewById(R.id.spinnerTheLoai);
+        EditText edtSoLuong = dialogView.findViewById(R.id.edtSoLuong);
+
+        // Thiết lập spinner thể loại
+        String[] danhSachTheLoai = {"Áo Khoác", "Áo Thun", "Sơ Mi", "Quần Dài", "Quần Short", "Phụ Kiện"};
+        ArrayAdapter<String> adapterSpinner = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, danhSachTheLoai);
+        adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerTheLoai.setAdapter(adapterSpinner);
+
+        // Disable edit mã sản phẩm
+        edtMaSP.setEnabled(false);
+        edtMaSP.setFocusable(false);
+
+        builder.setView(dialogView);
+
+        // Trước khi show dialog, lấy mã sản phẩm mới dựa trên mã lớn nhất hiện có
+        sanPhamRef.get().addOnSuccessListener(snapshot -> {
+            int maxNumber = 0;
+            for (DataSnapshot child : snapshot.getChildren()) {
+                String key = child.getKey(); // vd: sp1, sp2, sp3
+                if (key != null && key.startsWith("sp")) {
+                    try {
+                        int num = Integer.parseInt(key.substring(2));
+                        if (num > maxNumber) maxNumber = num;
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+            int newNumber = maxNumber + 1;
+            String newProductId = "sp" + newNumber;
+            edtMaSP.setText(newProductId);
+        });
+
+        builder.setPositiveButton("Thêm", (dialog, which) -> {
+            String productId = edtMaSP.getText().toString().trim();
+            String tenSP = edtTenSP.getText().toString().trim();
+            String giaStr = edtGia.getText().toString().trim();
+            String hinh = edtHinh.getText().toString().trim();
+            String moTa = edtMoTa.getText().toString().trim();
+            String theLoai = spinnerTheLoai.getSelectedItem().toString();
+            String soLuongStr = edtSoLuong.getText().toString().trim();
+
+            if (productId.isEmpty() || tenSP.isEmpty() || giaStr.isEmpty() || soLuongStr.isEmpty()) {
+                Toast.makeText(InventoryActivity.this, "Mã sản phẩm, Tên, Giá và Số lượng không được để trống", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            double gia;
+            int soLuong;
+            try {
+                gia = Double.parseDouble(giaStr);
+                soLuong = Integer.parseInt(soLuongStr);
+            } catch (NumberFormatException e) {
+                Toast.makeText(InventoryActivity.this, "Giá hoặc Số lượng không hợp lệ", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Map<String, Object> newProductData = new HashMap<>();
+            newProductData.put("TenSP", tenSP);
+            newProductData.put("Gia", gia);
+            newProductData.put("Hinh", hinh);
+            newProductData.put("MoTa", moTa);
+            newProductData.put("SoLuong", soLuong);
+            newProductData.put("TheLoai", theLoai);
+
+            // Lưu sản phẩm mới với key là productId tự tạo (spN)
+            sanPhamRef.child(productId).setValue(newProductData)
+                    .addOnSuccessListener(unused -> Toast.makeText(InventoryActivity.this, "Thêm sản phẩm thành công", Toast.LENGTH_SHORT).show())
+                    .addOnFailureListener(e -> Toast.makeText(InventoryActivity.this, "Lỗi thêm sản phẩm: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        });
+
+        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
+
+        builder.show();
+    }
+
+
     private void showEditProductDialog(SanPham sp) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Chỉnh sửa sản phẩm");
 
         // Inflate layout dialog_edit_product.xml với EditTexts và Spinner theo yêu cầu
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_product, null);
-
+        EditText edtMaSP = dialogView.findViewById(R.id.edtMaSP);
         EditText edtTenSP = dialogView.findViewById(R.id.edtTenSP);
         EditText edtGia = dialogView.findViewById(R.id.edtGia);
         EditText edtHinh = dialogView.findViewById(R.id.edtHinh);
@@ -117,6 +206,7 @@ public class InventoryActivity extends AppCompatActivity {
         EditText edtSoLuong = dialogView.findViewById(R.id.edtSoLuong);
 
         // Gán dữ liệu hiện tại vào các trường
+        edtMaSP.setText(sp.getProductId());
         edtTenSP.setText(sp.getTenSP());
         edtGia.setText(String.valueOf(sp.getGia()));
         edtHinh.setText(sp.getHinh());

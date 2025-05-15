@@ -1,10 +1,14 @@
 package com.example.clothingstore.Activity;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,8 +19,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.clothingstore.Fragment.ProfileFragment;
 import com.example.clothingstore.R;
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -28,101 +32,79 @@ import com.google.firebase.database.ValueEventListener;
 public class Profile extends AppCompatActivity {
 
     FirebaseAuth auth;
-    Button logout;
-    TextView textView, textPhone, textAddress, textEmail;
     FirebaseUser user;
-    EditText editUsername, editPhone, editAddress;
-    Button btnSaveUsername, btnSaveAddress;
     DatabaseReference databaseReference;
+
+    TextView textView, textPhone, textAddress, textEmail;
+    Button logout, btnManageInventory, btnLogin;
+    ShapeableImageView userAvatar;
+
+    LinearLayout profileLayout, loginLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.profile);
+        setContentView(R.layout.profile); // giữ nguyên tên layout
 
         auth = FirebaseAuth.getInstance();
-        logout = findViewById(R.id.btn_logout);
+        user = auth.getCurrentUser();
+
+        // Ánh xạ view
         textView = findViewById(R.id.username);
-        editUsername = findViewById(R.id.edit_username);
-        btnSaveUsername = findViewById(R.id.btn_save_username);
-        editPhone = findViewById(R.id.edit_phone);
-        editAddress = findViewById(R.id.edit_address);
         textEmail = findViewById(R.id.email);
         textPhone = findViewById(R.id.phone);
         textAddress = findViewById(R.id.address);
-        btnSaveAddress = findViewById(R.id.btn_save_address);
+        logout = findViewById(R.id.btn_logout);
+        btnManageInventory = findViewById(R.id.btn_manage_inventory);
+        userAvatar = findViewById(R.id.useravatar);
+        btnLogin = findViewById(R.id.btn_login);
 
-        user = auth.getCurrentUser();
+        profileLayout = findViewById(R.id.profile_layout);
+        loginLayout = findViewById(R.id.login_layout);
+
+        // Kiểm tra đăng nhập
         if (user == null) {
-            Intent intent = new Intent(Profile.this, Login.class);
-            startActivity(intent);
-            finish();
-        }
-        else {
-            String uid = user.getUid();
-            // Lấy tham chiếu đến Realtime Database
-            databaseReference = FirebaseDatabase.getInstance().getReference("users").child(uid);
-            // Lấy username từ Realtime Database
-            loadUserInfo();
-        }
-        // Thêm sự kiện click cho nút "Save Username"
-        btnSaveUsername.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                saveUsername();
-            }
-        });
+            profileLayout.setVisibility(View.GONE);
+            loginLayout.setVisibility(View.VISIBLE);
 
-        btnSaveAddress.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String phone = editPhone.getText().toString().trim();
-                String address = editAddress.getText().toString().trim();
-
-                if (phone.isEmpty() || address.isEmpty()) {
-                    Toast.makeText(Profile.this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                databaseReference.child("phone").setValue(phone);
-                databaseReference.child("address").setValue(address);
-                Toast.makeText(Profile.this, "Lưu thông tin thành công", Toast.LENGTH_SHORT).show();
-
-                // Cập nhật giao diện
-                textPhone.setText("Phone: " + phone);
-                textAddress.setText("Address: " + address);
-            }
-        });
-
-
-        logout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FirebaseAuth.getInstance().signOut();
+            btnLogin.setOnClickListener(v -> {
                 Intent intent = new Intent(Profile.this, Login.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
-                finish();
+            });
+
+        } else {
+            profileLayout.setVisibility(View.VISIBLE);
+            loginLayout.setVisibility(View.GONE);
+
+            String uid = user.getUid();
+            databaseReference = FirebaseDatabase.getInstance().getReference("users").child(uid);
+
+            loadUserInfo();
+
+            logout.setOnClickListener(v -> {
+                FirebaseAuth.getInstance().signOut();
+                recreate(); // Load lại activity sau khi đăng xuất
+            });
+
+            // Admin UID
+            if ("KPU4Ds064WWW10hCfzx5MzQUnmD2".equals(uid)) {
+                btnManageInventory.setVisibility(View.VISIBLE);
+                btnManageInventory.setOnClickListener(v -> {
+                    startActivity(new Intent(Profile.this, InventoryActivity.class));
+                });
+            } else {
+                btnManageInventory.setVisibility(View.GONE);
             }
-        });
+
+            userAvatar.setOnClickListener(v -> showEditDialog());
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.profile), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-    }
-    private void saveUsername() {
-        String username = editUsername.getText().toString().trim();
-        if (username.isEmpty()) {
-            editUsername.setError("Username is required");
-            editUsername.requestFocus();
-            return;
-        }
-        // Lưu username vào Realtime Database
-        databaseReference.child("username").setValue(username);
-        Toast.makeText(this, "Username saved", Toast.LENGTH_SHORT).show();
-        loadUserInfo();
     }
 
     private void loadUserInfo() {
@@ -135,22 +117,15 @@ public class Profile extends AppCompatActivity {
                     String address = snapshot.child("address").getValue(String.class);
 
                     if (username != null) {
-                        textView.setText(username);
+                        textView.setText("Xin chào, " + username);
                         textEmail.setText("Email: " + user.getEmail());
                     } else {
                         textView.setText(user.getEmail());
-                        textEmail.setText(View.GONE);
+                        textEmail.setVisibility(View.GONE);
                     }
 
-                    if (phone != null) {
-                        textPhone.setText("Số điện thoại: " + phone);
-                        editPhone.setText(phone);
-                    }
-
-                    if (address != null) {
-                        textAddress.setText("Địa chỉ: " + address);
-                        editAddress.setText(address);
-                    }
+                    if (phone != null) textPhone.setText("Số điện thoại: " + phone);
+                    if (address != null) textAddress.setText("Địa chỉ: " + address);
                 }
             }
 
@@ -161,4 +136,47 @@ public class Profile extends AppCompatActivity {
         });
     }
 
+    private void showEditDialog() {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_edit_profile);
+
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setBackgroundDrawableResource(android.R.color.white);
+        }
+
+        EditText editUsername = dialog.findViewById(R.id.edit_username);
+        EditText editPhone = dialog.findViewById(R.id.edit_phone);
+        EditText editAddress = dialog.findViewById(R.id.edit_address);
+        Button btnSave = dialog.findViewById(R.id.btn_save_profile);
+
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                editUsername.setText(snapshot.child("username").getValue(String.class));
+                editPhone.setText(snapshot.child("phone").getValue(String.class));
+                editAddress.setText(snapshot.child("address").getValue(String.class));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
+
+        btnSave.setOnClickListener(v -> {
+            String username = editUsername.getText().toString();
+            String phone = editPhone.getText().toString();
+            String address = editAddress.getText().toString();
+
+            databaseReference.child("username").setValue(username);
+            databaseReference.child("phone").setValue(phone);
+            databaseReference.child("address").setValue(address);
+
+            Toast.makeText(Profile.this, "Đã cập nhật thông tin", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
 }

@@ -21,6 +21,24 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Mã sản phẩm"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="12dp"/>
+
+        <EditText
+            android:id="@+id/edtMaSP"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@color/light_gray"
+            android:enabled="false"
+            android:focusable="false"
+            android:hint="Mã sản phẩm"
+            android:textColor="@android:color/black" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="Tên sản phẩm"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -29,8 +47,8 @@
         <EditText
             android:id="@+id/edtTenSP"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Tên sản phẩm"/>
+            android:layout_height="50dp"
+            android:hint="Tên sản phẩm" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -43,9 +61,9 @@
         <EditText
             android:id="@+id/edtGia"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:hint="Giá"/>
+            android:layout_height="50dp"
+            android:hint="Giá"
+            android:inputType="numberDecimal" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -58,8 +76,8 @@
         <EditText
             android:id="@+id/edtHinh"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="URL hình ảnh"/>
+            android:layout_height="50dp"
+            android:hint="URL hình ảnh" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -72,8 +90,8 @@
         <EditText
             android:id="@+id/edtMoTa"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Mô tả"/>
+            android:layout_height="50dp"
+            android:hint="Mô tả" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -86,8 +104,8 @@
         <Spinner
             android:id="@+id/spinnerTheLoai"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/black"/>
+            android:layout_height="50dp"
+            android:backgroundTint="@color/black" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -100,9 +118,9 @@
         <EditText
             android:id="@+id/edtSoLuong"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:hint="Số lượng tồn"/>
+            android:layout_height="50dp"
+            android:hint="Số lượng tồn"
+            android:inputType="number" />
 
     </LinearLayout>
 </ScrollView>
