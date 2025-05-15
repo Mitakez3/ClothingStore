@@ -40,17 +40,6 @@ android {
 }
 
 dependencies {
-    //vnpay
-//    implementation ("com.google.code.gson:gson:x.x.x")
-//    implementation ("com.squareup.okhttp3:okhttp:x.x.x")
-//    implementation(mapOf("name" to "merchant-1.0.25", "ext" to "aar"))
-    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
-    implementation("com.google.zxing:core:3.5.3")
-//    implementation("net.glxn.qrgen:android:2.6.0")
-    implementation("com.github.kenglxn.QRGen:android:2.6.0")
-    implementation("com.github.momo-wallet:mobile-sdk:1.0.7") {
-        exclude(group = "com.android.support", module = "support-compat")
-    }
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -66,6 +55,13 @@ dependencies {
     implementation(libs.ui.graphics)
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
+    implementation(fileTree(mapOf(
+        "dir" to "E:\\android\\ZaloPayLibs",
+        "include" to listOf("*.aar", "*.jar"),
+        "exclude" to listOf("")
+    )))
+    implementation("com.squareup.okhttp3:okhttp:4.6.0")
+    implementation("commons-codec:commons-codec:1.14")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

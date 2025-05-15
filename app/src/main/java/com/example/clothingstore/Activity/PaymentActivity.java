@@ -1,23 +1,16 @@
 package com.example.clothingstore.Activity;
 
-import android.app.Activity;
-import android.content.Intent;
-import vn.momo.momo_partner.AppMoMoLib;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.app.AlertDialog;
 import android.content.Intent;
+
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -32,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.clothingstore.Adapter.CartAdapter;
 import com.example.clothingstore.Adapter.VoucherAdapter;
+import com.example.clothingstore.Api.CreateOrder;
 import com.example.clothingstore.Domain.OrderItem;
 import com.example.clothingstore.Domain.Voucher;
 import com.example.clothingstore.R;
@@ -51,8 +45,9 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.annotations.Nullable;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.google.protobuf.Api;
 
-import net.glxn.qrgen.android.QRCode;
+import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.text.NumberFormat;
@@ -64,6 +59,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+
+import vn.zalopay.sdk.Environment;
+import vn.zalopay.sdk.ZaloPayError;
+import vn.zalopay.sdk.ZaloPaySDK;
+import vn.zalopay.sdk.listeners.PayOrderListener;
 
 public class PaymentActivity extends AppCompatActivity {
 
@@ -79,11 +79,6 @@ public class PaymentActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private FirebaseUser user;
     private DatabaseReference databaseReference;
-    private static final int REQUEST_CODE_MOMO = 1001;
-    private static final String MOMO_MERCHANT_NAME = "Clothing Store";
-    private static final String MOMO_MERCHANT_CODE = "MOMOXXXXX"; // Thay bằng mã thật
-    private static final String MOMO_ENVIRONMENT = "0"; // 0: SANDBOX, 1: PRODUCTION
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,11 +133,22 @@ public class PaymentActivity extends AppCompatActivity {
             return;
         }
 
-        AppMoMoLib.getInstance().setEnvironment(AppMoMoLib.ENVIRONMENT.DEVELOPMENT); // hoặc PRODUCTION
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        // ZaloPay SDK Init
+        ZaloPaySDK.init(2553, Environment.SANDBOX);
 
         LinearLayout layoutDiscount = findViewById(R.id.layoutDiscount);
         layoutDiscount.setOnClickListener(v -> showVoucherBottomSheet());
         btnPlaceOrder.setOnClickListener(v -> placeOrder());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        ZaloPaySDK.getInstance().onResult(intent);
     }
 
     private void loadUserAddress() {
@@ -352,8 +358,8 @@ public class PaymentActivity extends AppCompatActivity {
 
         if (paymentMethod.equals("Thanh toán khi nhận hàng")) {
             generateUniqueOrderIdAndSave("COD");
-        } else if (paymentMethod.equals("MoMo")) {
-            payWithMomo();
+        } else if (paymentMethod.equals("ZaloPay")) {
+            payWithZaloPay();
         }
     }
 
@@ -532,36 +538,65 @@ public class PaymentActivity extends AppCompatActivity {
         }
     }
 
-    private void payWithMomo() {
-        int amountToPay = (int) totalAmount;
-        String generatedOrderId = String.valueOf(System.currentTimeMillis()); // tạo mã đơn hàng để dùng làm comment
+    private void payWithZaloPay() {
+        CreateOrder orderApi = new CreateOrder();
 
-        showMomoQrDialog(generatedOrderId, amountToPay);
+        try {
+            // Chuyển totalAmount từ double sang int (ZaloPay yêu cầu)
+            int amount = (int) totalAmount;
+
+            // Gọi API backend để tạo đơn hàng
+            JSONObject data = orderApi.createOrder(String.valueOf(amount));
+
+            String code = data.getString("return_code");
+            Toast.makeText(getApplicationContext(), "ZaloPay return_code: " + code, Toast.LENGTH_LONG).show();
+
+            if (code.equals("1")) {
+                String token = data.getString("zp_trans_token");
+
+                // Gọi ZaloPay SDK để thanh toán
+                ZaloPaySDK.getInstance().payOrder(PaymentActivity.this, token, "clothingstore://app", new PayOrderListener() {
+                    @Override
+                    public void onPaymentSucceeded(final String transactionId, final String transToken, final String appTransID) {
+                        runOnUiThread(() -> {
+                            Log.d("ZaloPay", "Thanh toán thành công, bắt đầu lưu đơn hàng");
+                            // Gọi hàm lưu đơn hàng
+                            generateUniqueOrderIdAndSave("ZaloPay");
+
+                            // Hiển thị dialog thành công
+                            new AlertDialog.Builder(PaymentActivity.this)
+                                    .setTitle("Thanh toán thành công")
+                                    .setMessage(String.format("Mã giao dịch: %s", transactionId))
+                                    .setPositiveButton("OK", null)
+                                    .show();
+                        });
+                    }
+
+                    @Override
+                    public void onPaymentCanceled(String zpTransToken, String appTransID) {
+                        new AlertDialog.Builder(PaymentActivity.this)
+                                .setTitle("Đã hủy thanh toán")
+                                .setMessage(String.format("Mã giao dịch bị hủy: %s", zpTransToken))
+                                .setPositiveButton("OK", null)
+                                .show();
+                    }
+
+                    @Override
+                    public void onPaymentError(ZaloPayError zaloPayError, String zpTransToken, String appTransID) {
+                        new AlertDialog.Builder(PaymentActivity.this)
+                                .setTitle("Lỗi thanh toán")
+                                .setMessage(String.format("Lỗi: %s", zaloPayError.toString()))
+                                .setPositiveButton("OK", null)
+                                .show();
+                    }
+                });
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(PaymentActivity.this, "Lỗi khi tạo đơn hàng: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
-    private void showMomoQrDialog(String orderId, int amount) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = getLayoutInflater();
-        View view = inflater.inflate(R.layout.dialog_qr_payment, null);
-
-        ImageView qrImageView = view.findViewById(R.id.qrImageView);
-        Button btnConfirm = view.findViewById(R.id.btnConfirmPayment);
-
-        String comment = "Thanh toan don hang " + orderId;
-        String momoUrl = "https://nhantien.momo.vn/0908144116?amount=" + amount + "&comment=" + Uri.encode(comment);
-
-        Bitmap qrBitmap = QRCode.from(momoUrl).withSize(500, 500).bitmap();
-        qrImageView.setImageBitmap(qrBitmap);
-
-        builder.setView(view);
-        AlertDialog dialog = builder.create();
-        dialog.show();
-
-        btnConfirm.setOnClickListener(v -> {
-            dialog.dismiss();
-            Toast.makeText(this, "Cảm ơn bạn đã chuyển khoản. Đơn hàng sẽ được xử lý!", Toast.LENGTH_LONG).show();
-            generateUniqueOrderIdAndSave("MoMo_QR"); // Tiếp tục lưu đơn hàng vào Firebase
-        });
-    }
-
 
 }
