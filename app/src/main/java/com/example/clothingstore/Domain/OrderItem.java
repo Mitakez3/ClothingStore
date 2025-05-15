@@ -8,6 +8,7 @@ public class OrderItem {
     private String size;
     // thêm các trường khác nếu có: mô tả, thể loại, v.v.
     private int soLuong;
+    private boolean isReviewed;
     public OrderItem() {}
 
     public OrderItem(String productId, int soLuong, String tenSP, String hinh, Double gia) {
@@ -43,4 +44,7 @@ public class OrderItem {
 
     public String getSize() { return size; }
     public void setSize(String size) { this.size = size; }
+    public boolean isReviewed() {
+        return isReviewed;
+    }
 }

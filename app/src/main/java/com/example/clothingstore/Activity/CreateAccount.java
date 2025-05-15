@@ -24,6 +24,8 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class CreateAccount extends AppCompatActivity {
@@ -90,7 +92,7 @@ public class CreateAccount extends AppCompatActivity {
                                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                                     if (user != null) {
                                         String uid = user.getUid();
-
+                                        updateVoucherStatusForUser(uid);
                                         // Lưu userId vào SharedPreferences
                                         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
                                         SharedPreferences.Editor editor = prefs.edit();
@@ -108,7 +110,7 @@ public class CreateAccount extends AppCompatActivity {
                                                         if (phoneTask.isSuccessful()) {
                                                             Toast.makeText(CreateAccount.this, "Tài khoản đã được tạo.",
                                                                     Toast.LENGTH_SHORT).show();
-                                                            // Chuyển sang HomeActivity (giống như login)
+                                                            // Chuyển sang HomeActivity
                                                             Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
                                                             startActivity(intent);
                                                             finish();
@@ -143,6 +145,30 @@ public class CreateAccount extends AppCompatActivity {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
+        });
+    }
+    private void updateVoucherStatusForUser (String userId) {
+        DatabaseReference vouchersRef = FirebaseDatabase.getInstance().getReference("Vouchers");
+
+        vouchersRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DataSnapshot snapshot = task.getResult();
+                if (snapshot.exists()) {
+                    for (DataSnapshot voucherSnap : snapshot.getChildren()) {
+                        // VoucherId, ví dụ voucher1
+                        String voucherId = voucherSnap.getKey();
+
+                        // Kiểm tra xem trong status đã có userId chưa
+                        Object statusObj = voucherSnap.child("status").child(userId).getValue();
+                        if (statusObj == null) {
+                            // Nếu chưa có, cập nhật thành "ready"
+                            vouchersRef.child(voucherId).child("status").child(userId).setValue("ready");
+                        }
+                    }
+                }
+            } else {
+                Toast.makeText(CreateAccount.this, "Lỗi tải voucher", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }

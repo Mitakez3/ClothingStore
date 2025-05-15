@@ -1,0 +1,76 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:id="@+id/MyVoucherHeader"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:background="@color/white"
+        android:elevation="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/useravatar"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:shapeAppearance="@style/roundedImageView"
+            android:src="@drawable/ic_default_avatar"
+            app:srcCompat="@drawable/ic_default_avatar"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:paddingRight="10dp"
+            android:text=" Ưu đãi"
+            android:textColor="@color/black"
+            android:textSize="25dp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Tab menu -->
+    <LinearLayout
+        android:id="@+id/voucherTabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="@color/light_gray">
+
+        <Button
+            android:id="@+id/btnAvailableVouchers"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Voucher có sẵn"
+            android:backgroundTint="@color/ic_colors"
+            android:textColor="@color/white" />
+
+        <Button
+            android:id="@+id/btnMyVouchers"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Voucher của tôi"
+            android:backgroundTint="@color/light_gray"
+            android:textColor="@color/gray" />
+    </LinearLayout>
+
+    <!-- Danh sách voucher -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewVouchers"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="12dp" />
+
+</LinearLayout>

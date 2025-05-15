@@ -48,26 +48,21 @@
         android:id="@+id/btn_login"
         android:layout_width="356dp"
         android:layout_height="82dp"
-        android:layout_marginTop="689dp"
-        android:layout_marginBottom="120dp"
         android:backgroundTint="#004CFF"
         android:fontFamily="@font/nunitosans_light"
         android:text="Next"
         android:textSize="25dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.509"
+        app:layout_constraintHorizontal_bias="0.436"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.823" />
 
     <TextView
         android:id="@+id/cancel"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:layout_marginStart="179dp"
-        android:layout_marginTop="789dp"
-        android:layout_marginEnd="180dp"
-        android:layout_marginBottom="76dp"
         android:clickable="true"
         android:fontFamily="@font/nunitosans_light"
         android:gravity="center"
@@ -75,18 +70,15 @@
         android:textSize="18dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.818" />
+        app:layout_constraintVertical_bias="0.907" />
 
     <TextView
         android:id="@+id/textView8"
         android:layout_width="185dp"
         android:layout_height="68dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="366dp"
-        android:layout_marginEnd="202dp"
         android:layout_marginBottom="457dp"
         android:fontFamily="@font/raleway_bold"
         android:text="Login"
@@ -94,31 +86,28 @@
         android:textSize="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.123"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.874" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/EmailInputLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
         android:layout_width="363dp"
         android:layout_height="64dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="494dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="333dp"
         app:counterMaxLength="20"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.599">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/EmailEditText"
             android:layout_width="match_parent"
             android:layout_height="58dp"
-            android:hint="Email"
-            tools:layout_editor_absoluteX="24dp"
-            tools:layout_editor_absoluteY="494dp" />
+            android:hint="Email" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -126,25 +115,21 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
         android:layout_width="363dp"
         android:layout_height="64dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="581dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="246dp"
         app:counterMaxLength="20"
-        app:passwordToggleEnabled="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.437"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.702"
+        app:passwordToggleEnabled="true">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/PasswordEditText"
             android:layout_width="match_parent"
             android:layout_height="58dp"
             android:hint="Password"
-            android:inputType="textPassword"
-            tools:layout_editor_absoluteX="24dp"
-            tools:layout_editor_absoluteY="494dp" />
+            android:inputType="textPassword" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -152,30 +137,26 @@
         android:id="@+id/textView9"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="443dp"
-        android:layout_marginEnd="198dp"
-        android:layout_marginBottom="419dp"
         android:fontFamily="@font/nunitosans_light"
         android:text="Good to see you back!"
         android:textSize="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.108"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.501" />
 
     <ImageView
         android:id="@+id/imageView10"
         android:layout_width="26dp"
         android:layout_height="28dp"
-        android:layout_marginStart="219dp"
-        android:layout_marginTop="444dp"
-        android:layout_marginEnd="166dp"
-        android:layout_marginBottom="419dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.6"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.501"
         app:srcCompat="@drawable/heart" />
 
     <ProgressBar

@@ -29,7 +29,14 @@ public class ReviewProductAdapter extends RecyclerView.Adapter<ReviewProductAdap
     private List<OrderItem> itemList;
     private Context context;
     private String customerId;
+    private OnReviewCompleteListener reviewCompleteListener;
 
+    public interface OnReviewCompleteListener {
+        void onReviewComplete();
+    }
+    public void setOnReviewCompleteListener(OnReviewCompleteListener listener) {
+        this.reviewCompleteListener = listener;
+    }
     public ReviewProductAdapter(List<OrderItem> itemList, Context context, String customerId) {
         this.itemList = itemList;
         this.context = context;
@@ -71,7 +78,11 @@ public class ReviewProductAdapter extends RecyclerView.Adapter<ReviewProductAdap
                     .addOnSuccessListener(unused -> {
                         Toast.makeText(context, "Cảm ơn bạn đã đánh giá!", Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
+                        if (reviewCompleteListener != null) {
+                            reviewCompleteListener.onReviewComplete();
+                        }
                     });
+
         });
 
         dialog.show();
@@ -105,6 +116,15 @@ public class ReviewProductAdapter extends RecyclerView.Adapter<ReviewProductAdap
         holder.btnReview.setOnClickListener(v -> {
             showReviewPopup(context, item.getProductId(), item.getTenSP());
         });
+
+        if (item.isReviewed()) {
+            holder.btnReview.setText("Đã đánh giá");
+            holder.btnReview.setEnabled(false);
+        } else {
+            holder.btnReview.setText("Đánh giá");
+            holder.btnReview.setEnabled(true);
+        }
+
     }
 
     private String formatPrice(double price) {

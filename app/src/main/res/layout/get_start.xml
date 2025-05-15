@@ -89,10 +89,6 @@
         android:id="@+id/alr_have_acc"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:layout_marginStart="87dp"
-        android:layout_marginTop="772dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="93dp"
         android:clickable="true"
         android:fontFamily="@font/nunitosans_light"
         android:gravity="center"
@@ -101,7 +97,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_alr_have_acc"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.906" />
 
     <TextView
         android:id="@+id/skip"
@@ -120,10 +117,6 @@
         android:id="@+id/btn_alr_have_acc"
         android:layout_width="48dp"
         android:layout_height="52dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="11dp"
-        android:layout_marginEnd="71dp"
-        android:layout_marginBottom="80dp"
         android:backgroundTint="#004CFF"
         android:padding="0dp"
         android:text=">"
@@ -131,7 +124,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/alr_have_acc"
-        app:layout_constraintTop_toBottomOf="@+id/btn_get_start" />
+        app:layout_constraintTop_toBottomOf="@+id/btn_get_start"
+        app:layout_constraintVertical_bias="0.0" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

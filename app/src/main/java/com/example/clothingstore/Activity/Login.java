@@ -24,6 +24,9 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class Login extends AppCompatActivity {
     TextInputEditText emailEditText, passwordEditText;
@@ -81,7 +84,8 @@ public class Login extends AppCompatActivity {
                                             Toast.LENGTH_SHORT).show();
                                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                                     if (user != null) {
-                                        String userId = user.getUid();  // Đây là mã bạn cần
+                                        String userId = user.getUid();
+                                        updateVoucherStatusForUser(userId);
                                         // Lưu vào SharedPreferences
                                         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
                                         SharedPreferences.Editor editor = prefs.edit();
@@ -101,7 +105,7 @@ public class Login extends AppCompatActivity {
             }
         });
 
-            TextView cancel = (TextView) findViewById(R.id.cancel);
+        TextView cancel = (TextView) findViewById(R.id.cancel);
         cancel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -115,5 +119,30 @@ public class Login extends AppCompatActivity {
                 v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
                 return insets;
             });
-        }
     }
+    private void updateVoucherStatusForUser (String userId) {
+        DatabaseReference vouchersRef = FirebaseDatabase.getInstance().getReference("Vouchers");
+
+        vouchersRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DataSnapshot snapshot = task.getResult();
+                if (snapshot.exists()) {
+                    for (DataSnapshot voucherSnap : snapshot.getChildren()) {
+                        // VoucherId, ví dụ voucher1
+                        String voucherId = voucherSnap.getKey();
+
+                        // Kiểm tra xem trong status đã có userId chưa
+                        Object statusObj = voucherSnap.child("status").child(userId).getValue();
+                        if (statusObj == null) {
+                            // Nếu chưa có, cập nhật thành "ready"
+                            vouchersRef.child(voucherId).child("status").child(userId).setValue("ready");
+                        }
+                    }
+                }
+            } else {
+                Toast.makeText(Login.this, "Lỗi tải voucher", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+}
+

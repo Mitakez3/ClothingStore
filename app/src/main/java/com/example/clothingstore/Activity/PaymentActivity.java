@@ -217,6 +217,7 @@ public class PaymentActivity extends AppCompatActivity {
         bottomSheetDialog.setContentView(sheetView);
 
         RecyclerView recyclerView = sheetView.findViewById(R.id.recyclerVouchers);
+        TextView txtNoVoucher = sheetView.findViewById(R.id.txtNoVoucher); // TextView hiển thị khi không có voucher
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -224,7 +225,7 @@ public class PaymentActivity extends AppCompatActivity {
         DatabaseReference usedRef = FirebaseDatabase.getInstance().getReference("UsedVouchers");
 
         Map<String, Boolean> usedMap = new HashMap<>();
-        List<Voucher> vouchers = new ArrayList<>();
+        List<Voucher> claimedVouchers = new ArrayList<>();
 
         // Lấy danh sách UsedVouchers trước
         usedRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -241,16 +242,28 @@ public class PaymentActivity extends AppCompatActivity {
                 voucherRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot voucherSnapshot) {
+                        List<Voucher> claimedVouchers = new ArrayList<>();
                         for (DataSnapshot child : voucherSnapshot.getChildren()) {
                             Voucher v = child.getValue(Voucher.class);
                             if (v != null) {
                                 v.setVoucherId(child.getKey());
-                                vouchers.add(v);
+
+                                // Lấy status map
+                                DataSnapshot statusSnapshot = child.child("status");
+                                if (statusSnapshot.exists()) {
+                                    String userStatus = statusSnapshot.child(userId).getValue(String.class);
+                                    if ("claimed".equals(userStatus)) {
+                                        claimedVouchers.add(v);
+                                    }
+                                }
                             }
                         }
 
-                        // Tạo Adapter sau khi có cả vouchers và usedMap
-                        VoucherAdapter adapter = new VoucherAdapter(vouchers, userId, usedMap, selectedVoucher, new VoucherAdapter.OnVoucherApplyListener() {
+                        if (claimedVouchers.isEmpty()) {
+                            Toast.makeText(PaymentActivity.this, "Không có voucher để dùng", Toast.LENGTH_SHORT).show();
+                        }
+
+                        VoucherAdapter adapter = new VoucherAdapter(claimedVouchers, userId, usedMap, selectedVoucher, new VoucherAdapter.OnVoucherApplyListener() {
                             @Override
                             public void onApply(Voucher voucher) {
                                 selectedVoucher = voucher;
@@ -266,7 +279,6 @@ public class PaymentActivity extends AppCompatActivity {
                             }
                         });
 
-
                         recyclerView.setAdapter(adapter);
                     }
 
@@ -275,6 +287,7 @@ public class PaymentActivity extends AppCompatActivity {
                         Toast.makeText(PaymentActivity.this, "Lỗi khi tải voucher", Toast.LENGTH_SHORT).show();
                     }
                 });
+
             }
 
             @Override
@@ -285,6 +298,7 @@ public class PaymentActivity extends AppCompatActivity {
 
         bottomSheetDialog.show();
     }
+
 
     private void applyVoucher(Voucher newVoucher) {
         selectedVoucher = newVoucher;
@@ -390,8 +404,6 @@ public class PaymentActivity extends AppCompatActivity {
                         .child(orderId)
                         .setValue(orderData)
                         .addOnSuccessListener(aVoid -> {
-                            // giữ nguyên phần xử lý sau khi đặt hàng thành công (update soldCount, xóa giỏ, toast, chuyển màn...)
-
                             for (SanPham sp : selectedItems) {
                                 DatabaseReference soldRef = FirebaseDatabase.getInstance()
                                         .getReference("soldCount")

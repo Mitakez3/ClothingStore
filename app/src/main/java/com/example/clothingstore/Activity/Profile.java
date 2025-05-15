@@ -69,7 +69,7 @@ public class Profile extends AppCompatActivity {
         btnSaveUsername.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveUsername(); // Gọi phương thức saveUsername() khi nút được nhấn
+                saveUsername();
             }
         });
 

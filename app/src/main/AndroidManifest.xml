@@ -60,6 +60,10 @@
             android:name=".Activity.HomeActivity"
             android:exported="true" />
 
+        <activity
+            android:name=".Activity.VoucherActivity"
+            android:exported="true" />
+
     </application>
 
 </manifest>

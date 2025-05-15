@@ -73,16 +73,25 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             case "delivering":
                 statusText = "Đang giao hàng";
                 holder.btnAction.setText("Đã nhận hàng?");
+                holder.btnAction.setVisibility(View.VISIBLE);
                 break;
             case "delivered":
                 statusText = "Đã giao hàng";
                 holder.btnAction.setText("Đánh giá");
+                holder.btnAction.setVisibility(View.VISIBLE);
+                break;
+            case "reviewed":
+                statusText = "Đã đánh giá";
+                holder.btnAction.setText("Đã đánh giá");
+                holder.btnAction.setEnabled(false);
+                holder.btnAction.setVisibility(View.VISIBLE);
                 break;
             default:
                 statusText = "Không rõ trạng thái";
                 holder.btnAction.setVisibility(View.GONE);
                 break;
         }
+
 
         holder.tvStatus.setText(statusText);
         holder.tvItemCount.setText(order.getOrderItems().size() + " sản phẩm");
@@ -117,7 +126,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
         holder.btnAction.setOnClickListener(v -> {
             if ("Đánh giá".equals(holder.btnAction.getText())) {
-                showReviewDialog(order.getOrderItems(), order.getCustomerId()); // truyền thêm customerId
+                showReviewDialog(order.getOrderItems(), order.getCustomerId(), order, holder);
             } else if ("Đã nhận hàng?".equals(holder.btnAction.getText())) {
                 new AlertDialog.Builder(context)
                         .setTitle("Xác nhận")
@@ -156,7 +165,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         return sdf.format(new java.util.Date(timestamp));
     }
 
-    private void showReviewDialog(List<OrderItem> orderItems, String customerId) {
+    private void showReviewDialog(List<OrderItem> orderItems, String customerId, Order order, OrderViewHolder holder) {
         Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_review);
@@ -167,6 +176,32 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
         ReviewProductAdapter adapter = new ReviewProductAdapter(orderItems, context, customerId);
         recyclerView.setAdapter(adapter);
+
+        // Đếm số sản phẩm đã đánh giá thành công
+        final int[] reviewedCount = {0};
+
+        adapter.setOnReviewCompleteListener(() -> {
+            reviewedCount[0]++;
+            if (reviewedCount[0] == orderItems.size()) {
+                // Cập nhật trạng thái order lên Firebase
+                DatabaseReference orderRef = FirebaseDatabase.getInstance()
+                        .getReference("orders")
+                        .child(order.getOrderId());
+
+                orderRef.child("status").setValue("reviewed")
+                        .addOnSuccessListener(aVoid -> {
+                            order.setStatus("reviewed");
+                            holder.tvStatus.setText("Đã đánh giá");
+                            holder.btnAction.setText("Đã đánh giá");
+                            holder.btnAction.setEnabled(false);
+                            Toast.makeText(context, "Đơn hàng đã được đánh giá đầy đủ!", Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(context, "Lỗi khi cập nhật trạng thái đơn hàng", Toast.LENGTH_SHORT).show();
+                        });
+            }
+        });
 
         dialog.show();
 
@@ -179,6 +214,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             window.setGravity(Gravity.BOTTOM);
         }
     }
+
 
     @Override
     public int getItemCount() {

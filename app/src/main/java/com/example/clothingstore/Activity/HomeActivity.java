@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.clothingstore.Fragment.OrdersFragment;
 import com.example.clothingstore.Fragment.ProfileFragment;
+import com.example.clothingstore.Fragment.VoucherFragment;
 import com.example.clothingstore.R;
 import com.example.clothingstore.Fragment.ShopFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -29,6 +30,8 @@ public class HomeActivity extends AppCompatActivity {
             Fragment fragment = null;
             if (item.getItemId() == R.id.nav_shop) {
                 fragment = new ShopFragment();
+            } else if (item.getItemId() == R.id.nav_voucher) {
+                fragment = new VoucherFragment();
             } else if (item.getItemId() == R.id.nav_orders) {
                 fragment = new OrdersFragment();
             } else if (item.getItemId() == R.id.nav_profile) {
