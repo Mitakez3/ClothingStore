@@ -32,6 +32,7 @@ public class SanPhamAdapter extends RecyclerView.Adapter<SanPhamAdapter.SanPhamV
     private final Context context;
     private OnAddToCartListener listener;
     private OnItemClickListener onItemClickListener;
+    private boolean isInventoryMode;
 
     public interface OnItemClickListener {
         void onItemClick(String productId);
@@ -41,10 +42,10 @@ public class SanPhamAdapter extends RecyclerView.Adapter<SanPhamAdapter.SanPhamV
         this.onItemClickListener = listener;
     }
 
-
-    public SanPhamAdapter(List<SanPham> sanPhamList, Context context) {
-        this.sanPhamList = sanPhamList;
+    public SanPhamAdapter(Context context, List<SanPham> sanPhamList, boolean isInventoryMode) {
         this.context = context;
+        this.sanPhamList = sanPhamList;
+        this.isInventoryMode = isInventoryMode;
     }
 
     @NonNull
@@ -124,20 +125,23 @@ public class SanPhamAdapter extends RecyclerView.Adapter<SanPhamAdapter.SanPhamV
         });
 
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, ProductDetailActivity.class);
-            intent.putExtra("productId", sanPham.getProductId());
-            intent.putExtra("tenSP", sanPham.getTenSP());
-            intent.putExtra("giaSP", sanPham.getGia());
-            intent.putExtra("hinhSP", sanPham.getHinh());
-            intent.putExtra("MoTa", sanPham.getMoTa());
-            context.startActivity(intent);
-        });
-
-        holder.itemView.setOnClickListener(v -> {
-            if (onItemClickListener != null) {
-                onItemClickListener.onItemClick(sanPham.getProductId());
+            if (isInventoryMode) {
+                // Ở chế độ quản lý tồn kho
+                if (onItemClickListener != null) {
+                    onItemClickListener.onItemClick(sanPham.getProductId());
+                }
+            } else {
+                // Ở chế độ xem sản phẩm
+                Intent intent = new Intent(context, ProductDetailActivity.class);
+                intent.putExtra("productId", sanPham.getProductId());
+                intent.putExtra("tenSP", sanPham.getTenSP());
+                intent.putExtra("giaSP", sanPham.getGia());
+                intent.putExtra("hinhSP", sanPham.getHinh());
+                intent.putExtra("MoTa", sanPham.getMoTa());
+                context.startActivity(intent);
             }
         });
+
     }
 
 

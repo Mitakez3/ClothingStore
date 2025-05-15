@@ -129,7 +129,7 @@ public class ShopFragment extends Fragment {
     }
 
     private void onSanPhamLoaded(List<SanPham> sanPhams) {
-        sanPhamAdapter = new SanPhamAdapter(sanPhams, getContext());
+        sanPhamAdapter = new SanPhamAdapter(getContext(), sanPhams, false);
         recyclerView.setAdapter(sanPhamAdapter);
     }
 
@@ -222,7 +222,7 @@ public class ShopFragment extends Fragment {
 
         // Đổ riêng lên recyclerViewHot
         requireActivity().runOnUiThread(() -> {
-            SanPhamAdapter hotAdapter = new SanPhamAdapter(top2, requireContext());
+            SanPhamAdapter hotAdapter = new SanPhamAdapter(requireContext(), top2, false);
             recyclerViewHot.setAdapter(hotAdapter);
         });
     }

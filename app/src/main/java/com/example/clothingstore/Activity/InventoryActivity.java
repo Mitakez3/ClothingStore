@@ -49,7 +49,7 @@ public class InventoryActivity extends AppCompatActivity {
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(2, spacing, true));
 
         sanPhamList = new ArrayList<>();
-        sanPhamAdapter = new SanPhamAdapter(sanPhamList, this);
+        sanPhamAdapter = new SanPhamAdapter(this, sanPhamList, true);
 
         recyclerView.setAdapter(sanPhamAdapter);
 

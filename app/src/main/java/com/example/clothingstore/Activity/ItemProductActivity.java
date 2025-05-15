@@ -237,14 +237,14 @@ public class ItemProductActivity extends AppCompatActivity {
         List<SanPham> top2 = hotList.size() > 2 ? hotList.subList(0, 2) : hotList;
 
         runOnUiThread(() -> {
-            sanPhamAdapter = new SanPhamAdapter(top2, this);
+            sanPhamAdapter = new SanPhamAdapter(this, top2, false);
             recyclerView.setAdapter(sanPhamAdapter);
         });
     }
 
 
     private void onSanPhamLoaded(List<SanPham> sanPhams) {
-        sanPhamAdapter = new SanPhamAdapter(sanPhams, this);
+        sanPhamAdapter = new SanPhamAdapter(this, sanPhams, false);
         recyclerView.setAdapter(sanPhamAdapter);
     }
 

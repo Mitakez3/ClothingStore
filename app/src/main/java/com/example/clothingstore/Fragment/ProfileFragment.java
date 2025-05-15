@@ -43,7 +43,8 @@ public class ProfileFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.profile, container, false);
 
@@ -63,16 +64,44 @@ public class ProfileFragment extends Fragment {
         profileLayout = view.findViewById(R.id.profile_layout);
         loginLayout = view.findViewById(R.id.login_layout);
 
-        // Kiểm tra đăng nhập
+        updateUI();
+
+        btnLogin.setOnClickListener(v -> {
+            startActivity(new Intent(requireContext(), Login.class));
+        });
+
+        logout.setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
+            // Cập nhật lại giao diện khi đăng xuất
+            updateUI();
+        });
+
+        if (user != null && "KPU4Ds064WWW10hCfzx5MzQUnmD2".equals(user.getUid())) {
+            btnManageInventory.setVisibility(View.VISIBLE);
+            btnManageInventory.setOnClickListener(v -> {
+                startActivity(new Intent(requireContext(), InventoryActivity.class));
+            });
+        } else {
+            btnManageInventory.setVisibility(View.GONE);
+        }
+
+        userAvatar.setOnClickListener(v -> {
+            if (user != null) {
+                showEditDialog();
+            }
+        });
+
+        return view;
+    }
+
+    private void updateUI() {
+        user = auth.getCurrentUser();
         if (user == null) {
+            // Chưa đăng nhập
             profileLayout.setVisibility(View.GONE);
             loginLayout.setVisibility(View.VISIBLE);
-
-            btnLogin.setOnClickListener(v -> {
-                startActivity(new Intent(getContext(), Login.class));
-            });
-
         } else {
+            // Đã đăng nhập
             profileLayout.setVisibility(View.VISIBLE);
             loginLayout.setVisibility(View.GONE);
 
@@ -81,26 +110,13 @@ public class ProfileFragment extends Fragment {
 
             loadUserInfo();
 
-            logout.setOnClickListener(v -> {
-                FirebaseAuth.getInstance().signOut();
-                // Reload fragment
-                requireActivity().getSupportFragmentManager().beginTransaction().detach(this).attach(this).commit();
-            });
-
-            // Admin UID
+            // Hiển thị quản lý tồn kho cho admin
             if ("KPU4Ds064WWW10hCfzx5MzQUnmD2".equals(uid)) {
                 btnManageInventory.setVisibility(View.VISIBLE);
-                btnManageInventory.setOnClickListener(v -> {
-                    startActivity(new Intent(getContext(), InventoryActivity.class));
-                });
             } else {
                 btnManageInventory.setVisibility(View.GONE);
             }
-
-            userAvatar.setOnClickListener(v -> showEditDialog());
         }
-
-        return view;
     }
 
     private void loadUserInfo() {
@@ -115,19 +131,23 @@ public class ProfileFragment extends Fragment {
                     if (username != null) {
                         textView.setText("Xin chào, " + username);
                         textEmail.setText("Email: " + user.getEmail());
+                        textEmail.setVisibility(View.VISIBLE);
                     } else {
                         textView.setText(user.getEmail());
                         textEmail.setVisibility(View.GONE);
                     }
 
                     if (phone != null) textPhone.setText("Số điện thoại: " + phone);
+                    else textPhone.setText("");
+
                     if (address != null) textAddress.setText("Địa chỉ: " + address);
+                    else textAddress.setText("");
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "Không tải được thông tin", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Không tải được thông tin", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -157,6 +177,7 @@ public class ProfileFragment extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                // Không làm gì
             }
         });
 
@@ -169,7 +190,7 @@ public class ProfileFragment extends Fragment {
             databaseReference.child("phone").setValue(phone);
             databaseReference.child("address").setValue(address);
 
-            Toast.makeText(getContext(), "Đã cập nhật thông tin", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Đã cập nhật thông tin", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         });
 
