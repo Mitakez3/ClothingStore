@@ -1,9 +1,9 @@
-    plugins {
-        alias(libs.plugins.android.application)
-        alias(libs.plugins.google.gms.google.services)
-        alias(libs.plugins.kotlin.android)
-        alias(libs.plugins.kotlin.compose)
-    }
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+}
 
 android {
     namespace = "com.example.clothingstore"
@@ -18,6 +18,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
+
 
     buildTypes {
         release {
@@ -38,6 +40,17 @@ android {
 }
 
 dependencies {
+    //vnpay
+//    implementation ("com.google.code.gson:gson:x.x.x")
+//    implementation ("com.squareup.okhttp3:okhttp:x.x.x")
+//    implementation(mapOf("name" to "merchant-1.0.25", "ext" to "aar"))
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("com.google.zxing:core:3.5.3")
+//    implementation("net.glxn.qrgen:android:2.6.0")
+    implementation("com.github.kenglxn.QRGen:android:2.6.0")
+    implementation("com.github.momo-wallet:mobile-sdk:1.0.7") {
+        exclude(group = "com.android.support", module = "support-compat")
+    }
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

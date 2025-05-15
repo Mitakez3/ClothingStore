@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.clothingstore.Adapter.CategoryAdapter;
+import com.example.clothingstore.Domain.Comment;
 import com.example.clothingstore.Domain.GridSpacingItemDecoration;
 import com.example.clothingstore.R;
 import com.example.clothingstore.Domain.SanPham;
@@ -86,14 +87,32 @@ public class ItemProductActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<SanPham> categories = new ArrayList<>();
+
+                // Thêm một ô "Sản phẩm hot" vào đầu danh sách thể loại
+                SanPham hotCategory = new SanPham("Sản phẩm hot", 0.0, "", "", "Hot");  // Đây chỉ là một ô lọc, không phải sản phẩm thực tế
+                Log.d(TAG, "Before adding hot category: " + hotCategory); // Log trước khi thêm
+                categories.add(hotCategory);
+                Log.d(TAG, "Before adding product: " + categories); // Log trước khi thêm từng sản phẩm
+
+                // Thêm các sản phẩm thể loại khác vào danh sách
                 for (DataSnapshot spSnapshot : snapshot.getChildren()) {
                     SanPham sanPham = spSnapshot.getValue(SanPham.class);
                     if (sanPham != null) {
                         categories.add(sanPham);
                     }
                 }
+
+                // Log sau khi hoàn tất việc thêm vào categories
+                Log.d(TAG, "Categories list after adding: " + categories);
+
+                // Cập nhật Adapter
                 CategoryAdapter adapter = new CategoryAdapter(categories, theLoai -> {
-                    filterSanPhamByTheLoai(theLoai);
+                    if ("Sản phẩm hot".equalsIgnoreCase(theLoai)) {
+                        // Khi chọn ô "Sản phẩm hot", gọi hàm filterHotProducts()
+                        filterHotProducts(sanPhamList);  // Giả sử sanPhamList là danh sách sản phẩm đầy đủ
+                    } else {
+                        filterSanPhamByTheLoai(theLoai);
+                    }
                 });
                 recyclerViewCategories.setAdapter(adapter);
             }
@@ -104,6 +123,8 @@ public class ItemProductActivity extends AppCompatActivity {
             }
         });
     }
+
+
 
     private void filterSanPhamByTheLoai(String theLoai) {
         List<SanPham> filteredList = new ArrayList<>();
@@ -117,34 +138,108 @@ public class ItemProductActivity extends AppCompatActivity {
 
     private void loadSanPham() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("SanPham");
+        DatabaseReference spRef = database.getReference("SanPham");
 
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        spRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                sanPhamList.clear();
-                Log.d(TAG, "Tổng số sản phẩm: " + dataSnapshot.getChildrenCount());
-                for (DataSnapshot spSnapshot : dataSnapshot.getChildren()) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<SanPham> tempList = new ArrayList<>();
+                for (DataSnapshot spSnapshot : snapshot.getChildren()) {
                     String tenSP = spSnapshot.child("TenSP").getValue(String.class);
                     Double gia = spSnapshot.child("Gia").getValue(Double.class);
                     String hinh = spSnapshot.child("Hinh").getValue(String.class);
                     String moTa = spSnapshot.child("MoTa").getValue(String.class);
                     String theLoai = spSnapshot.child("TheLoai").getValue(String.class);
+                    String productId = spSnapshot.getKey();
 
                     if (tenSP != null && gia != null && hinh != null && theLoai != null) {
                         SanPham sp = new SanPham(tenSP, gia, hinh, moTa != null ? moTa : "", theLoai);
-                        sp.setProductId(spSnapshot.getKey()); // Gán key (ví dụ: sp1) làm productId
-                        sanPhamList.add(sp);
+                        sp.setProductId(productId);
+                        tempList.add(sp);
                     }
-
                 }
-                onSanPhamLoaded(sanPhamList);
+                sanPhamList = tempList;  // Cập nhật danh sách sản phẩm
+                onSanPhamLoaded(sanPhamList); // Hiển thị sản phẩm đã tải
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {
-                Log.e(TAG, "Failed to read value.", error.toException());
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Failed to read SanPham.", error.toException());
             }
+        });
+    }
+
+    private void filterHotProducts(List<SanPham> fullList) {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        List<SanPham> filteredList = new ArrayList<>();
+        int[] loadedCount = {0};
+
+        for (SanPham sp : fullList) {
+            String productId = sp.getProductId();
+
+            DatabaseReference commentRef = database.getReference("Comments").child(productId);
+            commentRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    double total = 0;
+                    int count = 0;
+
+                    for (DataSnapshot snap : snapshot.getChildren()) {
+                        Comment cmt = snap.getValue(Comment.class);
+                        if (cmt != null) {
+                            total += cmt.getRating();
+                            count++;
+                        }
+                    }
+
+                    double avg = count > 0 ? total / count : 0;
+                    if (avg >= 4.0) {
+                        // Nếu sản phẩm có điểm trung bình >= 4, tiếp tục lấy soldCount
+                        DatabaseReference soldRef = database.getReference("soldCount").child(productId);
+                        soldRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapSold) {
+                                int sold = snapSold.exists() ? snapSold.getValue(Integer.class) : 0;
+                                sp.setSoldCount(sold);
+                                filteredList.add(sp);
+
+                                // Kiểm tra khi đã xử lý hết
+                                loadedCount[0]++;
+                                if (loadedCount[0] == fullList.size()) {
+                                    showTopHotProducts(filteredList);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                loadedCount[0]++;
+                            }
+                        });
+                    } else {
+                        loadedCount[0]++;
+                        if (loadedCount[0] == fullList.size()) {
+                            showTopHotProducts(filteredList);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    loadedCount[0]++;
+                }
+            });
+        }
+    }
+    private void showTopHotProducts(List<SanPham> hotList) {
+        // Sắp xếp theo lượt bán giảm dần
+        hotList.sort((sp1, sp2) -> Integer.compare(sp2.getSoldCount(), sp1.getSoldCount()));
+
+        // Chỉ lấy 2 sản phẩm hot nhất
+        List<SanPham> top2 = hotList.size() > 2 ? hotList.subList(0, 2) : hotList;
+
+        runOnUiThread(() -> {
+            sanPhamAdapter = new SanPhamAdapter(top2, this);
+            recyclerView.setAdapter(sanPhamAdapter);
         });
     }
 

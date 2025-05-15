@@ -9,4 +9,8 @@
     <color name="ic_colors">#004CFF</color>
     <color name="light_gray">#F0F0F0</color>
     <color name="dark_gray">#808080</color>
+    <!-- Ví dụ trong res/values/colors.xml -->
+    <color name="bg_hot">#FFF3E0</color>       <!-- Cam nhạt -->
+    <color name="bg_category">#E3F2FD</color>  <!-- Xanh dương nhạt -->
+    <color name="bg_product">#E8F5E9</color>   <!-- Xanh lá nhạt -->
 </resources>

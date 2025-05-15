@@ -14,6 +14,7 @@
         android:gravity="center"
         android:padding="8dp">
 
+        <!-- Hình ảnh vẫn có sẵn, có thể thay sau -->
         <ImageView
             android:id="@+id/imgCategory"
             android:layout_width="80dp"

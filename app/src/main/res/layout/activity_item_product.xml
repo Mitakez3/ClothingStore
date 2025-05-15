@@ -71,39 +71,88 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Tiêu đề cho thể loại -->
-            <TextView
-                android:id="@+id/headerCategory"
+            <!-- CardView HOT bạn đã có -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardHotFilter"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Thể loại"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:paddingStart="16dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:textColor="@color/black" />
+                android:layout_height="48dp"
+                android:layout_margin="16dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/bg_hot"
+                android:clickable="false"
+                android:foreground="?android:attr/selectableItemBackground">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Sản phẩm HOT"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:textSize="16sp"/>
+            </androidx.cardview.widget.CardView>
 
-            <!-- RecyclerView thể loại -->
+        <!-- RecyclerView để hiển thị 2 sản phẩm HOT -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewHot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:nestedScrollingEnabled="false"
+            tools:listitem="@layout/item_sanpham" />
+
+
+
+        <!-- Tiêu đề cho thể loại -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="8dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="1dp"
+                app:cardBackgroundColor="@color/bg_category">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Thể loại"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:textSize="16sp"/>
+            </androidx.cardview.widget.CardView>
+
+            <!-- RecyclerView thể loại: chứa cả các thể loại-->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewCategory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clipToPadding="false"
-                android:nestedScrollingEnabled="false" />
+                android:nestedScrollingEnabled="false"
+                android:paddingBottom="8dp" />
+
 
             <!-- Tiêu đề cho sản phẩm -->
-            <TextView
-                android:id="@+id/headerProduct"
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Sản phẩm"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:paddingStart="16dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:textColor="@color/black" />
+                android:layout_height="48dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="8dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="1dp"
+                app:cardBackgroundColor="@color/bg_product">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Sản phẩm"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:textSize="16sp"/>
+            </androidx.cardview.widget.CardView>
 
             <!-- RecyclerView danh sách sản phẩm -->
             <androidx.recyclerview.widget.RecyclerView

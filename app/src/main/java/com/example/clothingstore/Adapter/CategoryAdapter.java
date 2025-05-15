@@ -1,5 +1,8 @@
 package com.example.clothingstore.Adapter;
 
+import static android.content.ContentValues.TAG;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -39,10 +43,18 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     @Override
     public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
         SanPham category = categoryList.get(position);
-        holder.textCategoryName.setText(category.getTheLoai());
-        Glide.with(holder.itemView.getContext())
-                .load(category.getHinh())
-                .into(holder.imageCategory);
+        Log.d(TAG, "Category name: " + category.getTheLoai()); // Log để kiểm tra tên thể loại
+
+        if ("Sản phẩm hot".equals(category.getTheLoai())) {
+            holder.textCategoryName.setText("Sản phẩm hot");
+            // Có thể thay đổi màu nền hoặc các thuộc tính khác cho ô "Sản phẩm hot"
+            holder.imageCategory.setBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.gray));  // Màu nền cho ô lọc "Sản phẩm hot"
+        } else {
+            holder.textCategoryName.setText(category.getTheLoai());
+            Glide.with(holder.itemView.getContext())
+                    .load(category.getHinh())
+                    .into(holder.imageCategory);
+        }
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
@@ -50,6 +62,10 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
             }
         });
     }
+
+
+
+
 
     @Override
     public int getItemCount() {

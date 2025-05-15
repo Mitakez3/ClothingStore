@@ -4,4 +4,12 @@ plugins {
     alias(libs.plugins.google.gms.google.services) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
+
 }
+//allprojects {
+//    repositories {
+//        google()
+//        mavenCentral()
+//        maven { url = uri("https://jitpack.io") } // Thêm JitPack vào đây
+//    }
+//}

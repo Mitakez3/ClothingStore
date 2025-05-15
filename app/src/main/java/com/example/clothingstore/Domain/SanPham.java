@@ -13,6 +13,11 @@ public class SanPham {
 
     private String productId;
 
+    private int soldCount;
+    private boolean isHotCategory = false;
+
+
+
     public SanPham() {
     }
 
@@ -25,7 +30,9 @@ public class SanPham {
         this.TheLoai = TheLoai;
         this.soLuong = 1;
     }
-
+    public void setSoldCount(int soldCount) {
+        this.soldCount = soldCount;
+    }
     public String getTenSP() {
         return TenSP;
     }
@@ -83,6 +90,16 @@ public class SanPham {
 
     public void setSelected(boolean selected) {
         isSelected = selected;
+    }
+    public int getSoldCount() {
+        return soldCount;
+    }
+    public boolean isHotCategory() {
+        return isHotCategory;
+    }
+
+    public void setHotCategory(boolean hotCategory) {
+        isHotCategory = hotCategory;
     }
 
 }

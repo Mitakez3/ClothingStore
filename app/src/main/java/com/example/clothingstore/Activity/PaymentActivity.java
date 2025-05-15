@@ -1,13 +1,23 @@
 package com.example.clothingstore.Activity;
 
+import android.app.Activity;
+import android.content.Intent;
+import vn.momo.momo_partner.AppMoMoLib;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -42,6 +52,8 @@ import com.google.firebase.database.annotations.Nullable;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import net.glxn.qrgen.android.QRCode;
+
 import java.lang.reflect.Type;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -67,6 +79,11 @@ public class PaymentActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private FirebaseUser user;
     private DatabaseReference databaseReference;
+    private static final int REQUEST_CODE_MOMO = 1001;
+    private static final String MOMO_MERCHANT_NAME = "Clothing Store";
+    private static final String MOMO_MERCHANT_CODE = "MOMOXXXXX"; // Thay bằng mã thật
+    private static final String MOMO_ENVIRONMENT = "0"; // 0: SANDBOX, 1: PRODUCTION
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,6 +137,8 @@ public class PaymentActivity extends AppCompatActivity {
             finish(); // hoặc chuyển hướng đến LoginActivity
             return;
         }
+
+        AppMoMoLib.getInstance().setEnvironment(AppMoMoLib.ENVIRONMENT.DEVELOPMENT); // hoặc PRODUCTION
 
         LinearLayout layoutDiscount = findViewById(R.id.layoutDiscount);
         layoutDiscount.setOnClickListener(v -> showVoucherBottomSheet());
@@ -467,7 +486,35 @@ public class PaymentActivity extends AppCompatActivity {
     }
 
     private void payWithMomo() {
-        Toast.makeText(this, "Đang chuyển hướng tới MoMo...", Toast.LENGTH_SHORT).show();
-        generateUniqueOrderIdAndSave("Momo");
+        int amountToPay = (int) totalAmount;
+        String generatedOrderId = String.valueOf(System.currentTimeMillis()); // tạo mã đơn hàng để dùng làm comment
+
+        showMomoQrDialog(generatedOrderId, amountToPay);
     }
+    private void showMomoQrDialog(String orderId, int amount) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View view = inflater.inflate(R.layout.dialog_qr_payment, null);
+
+        ImageView qrImageView = view.findViewById(R.id.qrImageView);
+        Button btnConfirm = view.findViewById(R.id.btnConfirmPayment);
+
+        String comment = "Thanh toan don hang " + orderId;
+        String momoUrl = "https://nhantien.momo.vn/0908144116?amount=" + amount + "&comment=" + Uri.encode(comment);
+
+        Bitmap qrBitmap = QRCode.from(momoUrl).withSize(500, 500).bitmap();
+        qrImageView.setImageBitmap(qrBitmap);
+
+        builder.setView(view);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        btnConfirm.setOnClickListener(v -> {
+            dialog.dismiss();
+            Toast.makeText(this, "Cảm ơn bạn đã chuyển khoản. Đơn hàng sẽ được xử lý!", Toast.LENGTH_LONG).show();
+            generateUniqueOrderIdAndSave("MoMo_QR"); // Tiếp tục lưu đơn hàng vào Firebase
+        });
+    }
+
+
 }

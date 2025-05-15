@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.clothingstore.Activity.CartActivity;
 import com.example.clothingstore.Adapter.CategoryAdapter;
 import com.example.clothingstore.Adapter.SanPhamAdapter;
+import com.example.clothingstore.Domain.Comment;
 import com.example.clothingstore.Domain.GridSpacingItemDecoration;
 import com.example.clothingstore.Activity.Profile;
 import com.example.clothingstore.Domain.SanPham;
@@ -40,7 +41,7 @@ import java.util.regex.Pattern;
 public class ShopFragment extends Fragment {
     private static final String TAG = "ShopFragment";
 
-    private RecyclerView recyclerView, recyclerViewCategories;
+    private RecyclerView recyclerView, recyclerViewCategories,recyclerViewHot;
     private SanPhamAdapter sanPhamAdapter;
     private CategoryAdapter categoryAdapter;
     private EditText searchBar;
@@ -56,47 +57,35 @@ public class ShopFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_item_product, container, false);
 
+        // 1. Main grid
         recyclerView = view.findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new GridLayoutManager(getContext(),2));
-
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         int spacing = getResources().getDimensionPixelSize(R.dimen.item_spacing);
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(2, spacing, true));
 
+        // 2. HOT horizontal list
+        recyclerViewHot = view.findViewById(R.id.recyclerViewHot); // KHÔNG dùng getActivity().findViewById!
+
+        recyclerViewHot.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        recyclerViewHot.addItemDecoration(new GridSpacingItemDecoration(2, spacing, true));
+
+
+        // 3. Categories horizontal list
         recyclerViewCategories = view.findViewById(R.id.recyclerViewCategory);
-        recyclerViewCategories.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        recyclerViewCategories.setLayoutManager(
+                new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false)
+        );
 
-        searchBar = view.findViewById(R.id.searchBar);
-        btnCart = view.findViewById(R.id.btnCart);
-        userAvatar = view.findViewById(R.id.useravatar);
+        // bỏ listener trên cardHotFilter (không cần bấm nữa)
 
-        btnCart.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), CartActivity.class);
-            startActivity(intent);
-        });
+        loadSanPham();    // load cả 3 danh sách
+        loadCategories();
 
-        userAvatar.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), Profile.class);
-            startActivity(intent);
-            requireActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-        });
-
-        loadSanPham();
-
-        searchBar.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterSanPham(s.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
-
+        // search…
+        // cart / profile…
         return view;
     }
+
 
     private void loadSanPham() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -129,7 +118,7 @@ public class ShopFragment extends Fragment {
                     }
                 }
                 onSanPhamLoaded(sanPhamList);
-                onCategoriesLoaded(categoryList);
+                filterHotProducts(sanPhamList);
             }
 
             @Override
@@ -144,12 +133,100 @@ public class ShopFragment extends Fragment {
         recyclerView.setAdapter(sanPhamAdapter);
     }
 
-    private void onCategoriesLoaded(List<SanPham> categories) {
-        categoryAdapter = new CategoryAdapter(categories, theLoai -> {
-            filterSanPhamByTheLoai(theLoai);
+    private void loadCategories() {
+        DatabaseReference sanPhamRef = FirebaseDatabase.getInstance().getReference("SanPham");
+        sanPhamRef.limitToFirst(6).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<SanPham> categories = new ArrayList<>();
+                for (DataSnapshot spSnapshot : snapshot.getChildren()) {
+                    SanPham sanPham = spSnapshot.getValue(SanPham.class);
+                    if (sanPham != null) categories.add(sanPham);
+                }
+                categoryAdapter = new CategoryAdapter(categories, theLoai -> {
+                    filterSanPhamByTheLoai(theLoai);
+                });
+                recyclerViewCategories.setAdapter(categoryAdapter);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Failed to load category.", error.toException());
+            }
         });
-        recyclerViewCategories.setAdapter(categoryAdapter);
     }
+
+
+    private void filterHotProducts(List<SanPham> fullList) {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        List<SanPham> filteredList = new ArrayList<>();
+        int[] loadedCount = {0};
+
+        for (SanPham sp : fullList) {
+            String productId = sp.getProductId();
+
+            DatabaseReference commentRef = database.getReference("Comments").child(productId);
+            commentRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    double total = 0;
+                    int count = 0;
+
+                    for (DataSnapshot snap : snapshot.getChildren()) {
+                        Comment cmt = snap.getValue(Comment.class);
+                        if (cmt != null) {
+                            total += cmt.getRating();
+                            count++;
+                        }
+                    }
+
+                    double avg = count > 0 ? total / count : 0;
+                    if (avg >= 4.0) {
+                        // Nếu sản phẩm có điểm trung bình >= 4, tiếp tục lấy soldCount
+                        DatabaseReference soldRef = database.getReference("soldCount").child(productId);
+                        soldRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapSold) {
+                                int sold = snapSold.exists() ? snapSold.getValue(Integer.class) : 0;
+                                sp.setSoldCount(sold);
+                                filteredList.add(sp);
+
+                                // Kiểm tra khi đã xử lý hết
+                                loadedCount[0]++;
+                                if (loadedCount[0] == fullList.size()) {
+                                    showTopHotProducts(filteredList);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                loadedCount[0]++;
+                            }
+                        });
+                    } else {
+                        loadedCount[0]++;
+                        if (loadedCount[0] == fullList.size()) {
+                            showTopHotProducts(filteredList);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    loadedCount[0]++;
+                }
+            });
+        }
+    }
+    private void showTopHotProducts(List<SanPham> hotList) {
+        // Sắp xếp giảm dần, lấy 2 đầu
+        hotList.sort((a, b) -> Integer.compare(b.getSoldCount(), a.getSoldCount()));
+        List<SanPham> top2 = hotList.size() > 2 ? hotList.subList(0, 2) : hotList;
+
+        // Đổ riêng lên recyclerViewHot
+        requireActivity().runOnUiThread(() -> {
+            SanPhamAdapter hotAdapter = new SanPhamAdapter(top2, requireContext());
+            recyclerViewHot.setAdapter(hotAdapter);
+        });
+    }
+
 
     private void filterSanPhamByTheLoai(String theLoai) {
         List<SanPham> filteredList = new ArrayList<>();
