@@ -75,43 +75,57 @@
         android:id="@+id/productPrice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
         android:text="339.000 VND"
-        android:textColor="@color/black"
+        android:textColor="@color/red"
         android:textSize="22sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/productTitle" />
 
     <TextView
-        android:id="@+id/productDescription"
-        android:layout_width="0dp"
+        android:id="@+id/tvSoldAndStock"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_marginTop="16dp"
+        android:text="Đã bán 0 – Còn 0 sản phẩm"
+        android:textStyle="bold"
+        android:textColor="#444"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/productPrice" />
+
+    <!-- Khu vực bình luận + đánh giá trung bình -->
+
+    <TextView
+        android:id="@+id/productDescription"
+        android:layout_width="379dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
         android:text="Mô tả sản phẩm..."
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/productPrice" />
+        app:layout_constraintTop_toBottomOf="@+id/tvSoldAndStock" />
 
-    <!-- Khu vực bình luận + đánh giá trung bình -->
     <LinearLayout
         android:id="@+id/commentSection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal"
         android:gravity="center_vertical"
-        app:layout_constraintTop_toBottomOf="@id/productDescription"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/bottomButtons"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <Button
             android:id="@+id/btnShowComments"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Xem đánh giá"
-            android:backgroundTint="#004CFF"/>
+            android:backgroundTint="#004CFF"
+            android:text="Xem đánh giá" />
 
         <TextView
             android:id="@+id/tvAverageRating"
@@ -130,12 +144,14 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="16dp"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <Button
             android:id="@+id/btnBuyNow"
             android:layout_width="0dp"
-            android:layout_height="55dp"
+            android:layout_height="50dp"
             android:layout_weight="1"
             android:backgroundTint="#004CFF"
             android:text="Mua Ngay"
@@ -144,7 +160,7 @@
         <Button
             android:id="@+id/btnAddToCart"
             android:layout_width="0dp"
-            android:layout_height="55dp"
+            android:layout_height="50dp"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:backgroundTint="@color/gray"

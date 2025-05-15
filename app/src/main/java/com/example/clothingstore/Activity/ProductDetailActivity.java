@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,7 +48,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class ProductDetailActivity extends AppCompatActivity {
-    private TextView productTitle, productPrice, productDescription, tvAverageRating;
+    private TextView productTitle, productPrice, productDescription, tvAverageRating, tvSoldAndStock;
     private ImageView productImage;
     private Button btnBuyNow, btnAddToCart, btnShowComments;
 
@@ -65,6 +66,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         btnAddToCart = findViewById(R.id.btnAddToCart);
         btnShowComments = findViewById(R.id.btnShowComments);
         tvAverageRating = findViewById(R.id.tvAverageRating);
+        tvSoldAndStock = findViewById(R.id.tvSoldAndStock);
 
         // Nhận dữ liệu sản phẩm từ Intent
         String productId = getIntent().getStringExtra("productId");
@@ -95,6 +97,51 @@ public class ProductDetailActivity extends AppCompatActivity {
         btnShowComments.setOnClickListener(v -> showCommentsPopup(productId));
 
         calculateAndDisplayAverageRating(productId);
+
+        DatabaseReference productRef = FirebaseDatabase.getInstance().getReference("SanPham").child(productId);
+
+        productRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    long soLuongConLai = 0;
+                    if (snapshot.child("SoLuong").getValue() instanceof Long) {
+                        soLuongConLai = snapshot.child("SoLuong").getValue(Long.class);
+                    } else if (snapshot.child("SoLuong").getValue() instanceof String) {
+                        try {
+                            soLuongConLai = Long.parseLong(snapshot.child("SoLuong").getValue(String.class));
+                        } catch (Exception e) {
+                            soLuongConLai = 0;
+                        }
+                    }
+
+                    DatabaseReference soldRef = FirebaseDatabase.getInstance().getReference("soldCount").child(productId);
+                    long finalSoLuongConLai = soLuongConLai;
+
+                    soldRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot soldSnapshot) {
+                            long soldCount = 0;
+                            if (soldSnapshot.exists()) {
+                                soldCount = soldSnapshot.getValue(Long.class);
+                            }
+
+                            String info = "Đã bán " + soldCount + " – Còn " + finalSoLuongConLai + " sản phẩm";
+                            tvSoldAndStock.setText(info);
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
+
     }
 
     private void showCommentsPopup(String productId) {
@@ -248,8 +295,8 @@ public class ProductDetailActivity extends AppCompatActivity {
                 if (comments.isEmpty()) {
                     tvAverageRating.setText("Chưa có đánh giá");
                 } else {
-                    double averageRating = calculateAverageRating(comments);
-                    displayAverageRating(averageRating);
+                    Pair<Double, Integer> result = calculateAverageRating(comments);
+                    displayAverageRating(result.first, result.second);
                 }
             }
 
@@ -261,7 +308,7 @@ public class ProductDetailActivity extends AppCompatActivity {
     }
 
 
-    private double calculateAverageRating(List<Comment> comments) {
+    private Pair<Double, Integer> calculateAverageRating(List<Comment> comments) {
         double totalRating = 0;
         int numRatings = 0;
 
@@ -270,16 +317,19 @@ public class ProductDetailActivity extends AppCompatActivity {
             numRatings++;
         }
 
-        return numRatings > 0 ? totalRating / numRatings : 0;
+        double average = numRatings > 0 ? totalRating / numRatings : 0;
+        return new Pair<>(average, numRatings);
     }
 
-    private void displayAverageRating(double averageRating) {
-        if (averageRating == 0) {
+
+    private void displayAverageRating(double averageRating, int totalReviews) {
+        if (totalReviews == 0) {
             tvAverageRating.setText("Chưa có đánh giá");
         } else {
-            tvAverageRating.setText("⭐ " + String.format("%.1f", averageRating));
+            tvAverageRating.setText("⭐ " + String.format("%.1f", averageRating) + " | có " + totalReviews + " đánh giá");
         }
     }
+
 
     private String formatPrice(double price) {
         NumberFormat numberFormat = NumberFormat.getInstance(new Locale("vi", "VN"));

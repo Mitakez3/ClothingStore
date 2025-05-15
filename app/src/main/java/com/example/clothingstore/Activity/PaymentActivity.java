@@ -217,7 +217,7 @@ public class PaymentActivity extends AppCompatActivity {
         bottomSheetDialog.setContentView(sheetView);
 
         RecyclerView recyclerView = sheetView.findViewById(R.id.recyclerVouchers);
-        TextView txtNoVoucher = sheetView.findViewById(R.id.txtNoVoucher); // TextView hiển thị khi không có voucher
+        TextView txtNoVoucher = sheetView.findViewById(R.id.txtNoVoucher);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -363,7 +363,6 @@ public class PaymentActivity extends AppCompatActivity {
         List<SanPham> selectedItems = new ArrayList<>();
 
         for (SanPham sp : cartList) {
-            // Kiểm tra nếu sản phẩm này đã được chọn
             if (sp.isSelected()) {
                 OrderItem item = new OrderItem(
                         sp.getProductId(),
@@ -405,6 +404,7 @@ public class PaymentActivity extends AppCompatActivity {
                         .setValue(orderData)
                         .addOnSuccessListener(aVoid -> {
                             for (SanPham sp : selectedItems) {
+                                // Cập nhật soldCount
                                 DatabaseReference soldRef = FirebaseDatabase.getInstance()
                                         .getReference("soldCount")
                                         .child(sp.getProductId());
@@ -423,11 +423,47 @@ public class PaymentActivity extends AppCompatActivity {
                                     }
 
                                     @Override
-                                    public void onComplete(@Nullable DatabaseError error, boolean committed, @Nullable DataSnapshot currentData) {
+                                    public void onComplete(@Nullable DatabaseError error, boolean committed, @Nullable DataSnapshot currentData) {}
+                                });
+
+                                // Cập nhật tồn kho trong node SanPham
+                                DatabaseReference stockRef = FirebaseDatabase.getInstance()
+                                        .getReference("SanPham")
+                                        .child(sp.getProductId())
+                                        .child("SoLuong");
+
+                                stockRef.runTransaction(new Transaction.Handler() {
+                                    @NonNull
+                                    @Override
+                                    public Transaction.Result doTransaction(@NonNull MutableData currentData) {
+                                        Long currentStock = null;
+
+                                        Object val = currentData.getValue();
+                                        if (val instanceof Long) {
+                                            currentStock = (Long) val;
+                                        } else if (val instanceof String) {
+                                            try {
+                                                currentStock = Long.parseLong((String) val);
+                                            } catch (NumberFormatException e) {
+                                                currentStock = 0L;
+                                            }
+                                        }
+
+                                        if (currentStock == null) {
+                                            return Transaction.success(currentData); // Không thay đổi
+                                        }
+
+                                        long updatedStock = currentStock - sp.getSoLuong();
+                                        currentData.setValue(Math.max(updatedStock, 0));
+                                        return Transaction.success(currentData);
                                     }
+
+                                    @Override
+                                    public void onComplete(@Nullable DatabaseError error, boolean committed, @Nullable DataSnapshot currentData) {}
                                 });
                             }
 
+                            // Lưu lại voucher đã dùng
                             if (selectedVoucher != null) {
                                 FirebaseDatabase.getInstance().getReference("UsedVouchers")
                                         .child(selectedVoucher.getVoucherId())
@@ -435,6 +471,7 @@ public class PaymentActivity extends AppCompatActivity {
                                         .setValue(true);
                             }
 
+                            // Xóa khỏi giỏ hàng
                             DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(userId);
                             List<com.google.android.gms.tasks.Task<Void>> deleteTasks = new ArrayList<>();
 
@@ -443,7 +480,7 @@ public class PaymentActivity extends AppCompatActivity {
                             }
 
                             Tasks.whenAllComplete(deleteTasks).addOnCompleteListener(task -> {
-                                Toast.makeText(PaymentActivity.this, "Đặt hàng thành công và các sản phẩm đã bị xóa khỏi giỏ hàng", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(PaymentActivity.this, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show();
 
                                 Intent intent = new Intent(PaymentActivity.this, HomeActivity.class);
                                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -462,8 +499,6 @@ public class PaymentActivity extends AppCompatActivity {
             }
         });
     }
-
-
 
     private void generateUniqueOrderIdAndSave(String paymentMethod) {
         DatabaseReference ordersRef = FirebaseDatabase.getInstance().getReference("orders");
