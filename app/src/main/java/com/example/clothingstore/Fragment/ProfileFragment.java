@@ -1,7 +1,10 @@
 package com.example.clothingstore.Fragment;
 
+import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +16,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -40,6 +45,8 @@ public class ProfileFragment extends Fragment {
     ShapeableImageView userAvatar;
 
     LinearLayout profileLayout, loginLayout;
+    private ActivityResultLauncher<Intent> imagePickerLauncher;
+
 
     @Nullable
     @Override
@@ -87,9 +94,50 @@ public class ProfileFragment extends Fragment {
 
         userAvatar.setOnClickListener(v -> {
             if (user != null) {
-                showEditDialog();
+                // Hiển thị hộp thoại chọn hành động
+                new android.app.AlertDialog.Builder(requireContext())
+                        .setTitle("Chọn hành động")
+                        .setNegativeButton("Hủy", null)
+                        .setOnDismissListener(dialog -> {}) // tùy chọn
+                        .setItems(new CharSequence[]{"Thay ảnh đại diện", "Chỉnh sửa thông tin"}, (dialog, which) -> {
+                            if (which == 0) {
+                                // Chọn ảnh đại diện
+                                Intent intent = new Intent(Intent.ACTION_PICK);
+                                intent.setType("image/*");
+                                imagePickerLauncher.launch(intent);
+                            } else if (which == 1) {
+                                // Mở dialog chỉnh sửa thông tin
+                                showEditDialog();
+                            }
+                        })
+
+                        .show();
             }
         });
+
+
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri selectedImageUri = result.getData().getData();
+                        if (selectedImageUri != null) {
+                            userAvatar.setImageURI(selectedImageUri);
+                            // Lưu cục bộ bằng SharedPreferences hoặc File, ví dụ lưu vào SharedPreferences
+                            requireContext().getSharedPreferences("user_profile", Context.MODE_PRIVATE)
+                                    .edit()
+                                    .putString("avatar_uri", selectedImageUri.toString())
+                                    .apply();
+                        }
+                    }
+                }
+        );
+        // Load avatar từ SharedPreferences
+        String avatarUri = requireContext().getSharedPreferences("user_profile", Context.MODE_PRIVATE)
+                .getString("avatar_uri", null);
+        if (avatarUri != null) {
+            userAvatar.setImageURI(Uri.parse(avatarUri));
+        }
 
         return view;
     }
